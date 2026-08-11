@@ -84,7 +84,7 @@ export const useQrCustomization = () => {
     }
 
     if (qrOptions.showLogo && qrOptions.logoSrc && qrOptions.level !== 'H') {
-      items.push('Logo actif: le niveau de correction H est recommande.')
+      items.push('Logo actif : le niveau de correction H est recommandé.')
     }
 
     if (qrOptions.marginSize < 4) {

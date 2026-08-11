@@ -4,6 +4,8 @@ node_modules/
 
 
 dist/
+.next/
+out/
 web-build/
 expo-env.d.ts
 
@@ -34,5 +36,4 @@ yarn-error.*
 netlify.toml
 .netlify/
 
-pnpm-lock.yaml
 package-lock.json

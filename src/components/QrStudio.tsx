@@ -1,27 +1,49 @@
-import { useEffect, useRef } from 'react'
-import { Download, ImagePlus, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import {
+  CheckCircle2,
+  Download,
+  ImagePlus,
+  Link2,
+  RotateCcw,
+  ScanLine,
+  Sparkles,
+} from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { toast } from 'sonner'
 import { backgroundColors, foregroundColors, qrPresets } from '@/data/qrPresets'
 import type { LogoFrameShape, QrExportSize, QrLevel, QrOptions, QrStyleMode } from '@/types/link'
 import { applyQrSvgEnhancements, downloadPng, downloadSvg } from '@/utils/qrSvg'
 
+export type QrEditorTool = 'templates' | 'colors' | 'shape' | 'logo' | 'export'
+
+export type QrStudioHandle = {
+  downloadPng: () => void
+  downloadSvg: () => void
+}
+
 type QrStudioProps = {
   value: string
   options: QrOptions
   warnings: string[]
+}
+
+type QrControlsProps = {
+  tool: QrEditorTool
+  options: QrOptions
   onChange: (options: Partial<QrOptions>) => void
   onReset: () => void
+  onDownloadPng?: () => void
+  onDownloadSvg?: () => void
 }
 
 const qrLevels: QrLevel[] = ['L', 'M', 'Q', 'H']
+const exportSizes: QrExportSize[] = [512, 1024, 2048]
 const styleModes: Array<{ id: QrStyleMode; label: string }> = [
-  { id: 'classic', label: 'Carres' },
+  { id: 'classic', label: 'Carrés' },
   { id: 'rounded', label: 'Arrondi' },
   { id: 'dots', label: 'Points' },
   { id: 'soft', label: 'Doux' },
 ]
-const exportSizes: QrExportSize[] = [512, 1024, 2048]
 const logoFrameShapes: Array<{ id: LogoFrameShape; label: string }> = [
   { id: 'rounded', label: 'Arrondi' },
   { id: 'circle', label: 'Cercle' },
@@ -38,41 +60,113 @@ const readLogoFile = (file: File, onChange: (src: string) => void) => {
   reader.onload = () => {
     if (typeof reader.result === 'string') {
       onChange(reader.result)
-      toast.success('Logo ajoute au QR code.')
+      toast.success('Logo ajouté au QR code.')
     }
   }
   reader.onerror = () => toast.error('Impossible de lire cette image.')
   reader.readAsDataURL(file)
 }
 
-export function QrStudio({ value, options, warnings, onChange, onReset }: QrStudioProps) {
-  const svgRef = useRef<SVGSVGElement | null>(null)
-  const hasLogo = Boolean(options.logoSrc && options.showLogo)
+export const QrStudioCanvas = forwardRef<QrStudioHandle, QrStudioProps>(
+  function QrStudioCanvas({ value, options, warnings }, ref) {
+    const svgRef = useRef<SVGSVGElement | null>(null)
+    const hasLogo = Boolean(options.logoSrc && options.showLogo)
 
-  useEffect(() => {
-    applyQrSvgEnhancements(svgRef.current, options)
-  }, [options, value])
+    useEffect(() => {
+      applyQrSvgEnhancements(svgRef.current, options)
+    }, [options, value])
 
-  const handleDownloadPng = () => {
-    if (!svgRef.current || !value) {
-      toast.error('Generez un QR code avant de telecharger.')
-      return
+    const handleDownloadPng = () => {
+      if (!svgRef.current || !value) {
+        toast.error('Générez un QR code avant de télécharger.')
+        return
+      }
+
+      downloadPng(svgRef.current, options)
+      toast.success(`PNG ${options.exportSize}px préparé.`)
     }
 
-    downloadPng(svgRef.current, options)
-    toast.success(`PNG ${options.exportSize}px prepare.`)
-  }
+    const handleDownloadSvg = () => {
+      if (!svgRef.current || !value) {
+        toast.error('Générez un QR code avant de télécharger.')
+        return
+      }
 
-  const handleDownloadSvg = () => {
-    if (!svgRef.current || !value) {
-      toast.error('Generez un QR code avant de telecharger.')
-      return
+      downloadSvg(svgRef.current, options)
+      toast.success('SVG préparé.')
     }
 
-    downloadSvg(svgRef.current, options)
-    toast.success('SVG prepare.')
-  }
+    useImperativeHandle(ref, () => ({
+      downloadPng: handleDownloadPng,
+      downloadSvg: handleDownloadSvg,
+    }))
 
+    return (
+      <section className="editor-canvas" aria-label="Aperçu du QR code">
+        <div className="canvas-context">
+          <span className="context-label">
+            <Link2 aria-hidden="true" />
+            Destination
+          </span>
+          <span className="context-url">{value || 'Ajoutez un lien pour commencer'}</span>
+        </div>
+
+        <div className="canvas-stage">
+          <div className="qr-paper">
+            <div
+              className="qr-frame"
+              style={{ backgroundColor: options.transparentBackground ? '#f8fafc' : options.background }}
+            >
+              {value ? (
+                <QRCodeSVG
+                  ref={svgRef}
+                  value={value}
+                  size={options.size}
+                  bgColor={options.transparentBackground ? 'transparent' : options.background}
+                  fgColor={options.useGradient ? options.gradientFrom : options.foreground}
+                  level={options.level}
+                  marginSize={options.marginSize}
+                  title="QR code Vinkora"
+                  imageSettings={hasLogo ? {
+                    src: options.logoSrc,
+                    height: options.size * (options.logoSize / 100),
+                    width: options.size * (options.logoSize / 100),
+                    excavate: true,
+                  } : undefined}
+                />
+              ) : (
+                <div className="qr-placeholder">
+                  <Sparkles aria-hidden="true" />
+                  <strong>Votre QR apparaîtra ici</strong>
+                  <span>Ouvrez l’outil Lien pour générer votre premier QR code.</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className={warnings.length ? 'scan-status has-warning' : 'scan-status'}>
+          <div>
+            {warnings.length ? <ScanLine aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
+            <span>{warnings.length ? warnings[0] : 'Scan fiable'}</span>
+          </div>
+          <span className="status-separator" aria-hidden="true" />
+          <span>{warnings.length ? 'Vérifiez les réglages' : 'Contraste adapté'}</span>
+        </div>
+
+      </section>
+    )
+  },
+)
+
+export function QrStudioControls({
+  tool,
+  options,
+  onChange,
+  onReset,
+  onDownloadPng,
+  onDownloadSvg,
+}: QrControlsProps) {
   const handleAutoFitLogo = () => {
     onChange({
       level: 'H',
@@ -86,432 +180,467 @@ export function QrStudio({ value, options, warnings, onChange, onReset }: QrStud
       logoFit: 'contain',
       showLogo: Boolean(options.logoSrc),
     })
-    toast.success('Logo adapte pour un rendu plus propre.')
+    toast.success('Logo adapté pour un rendu plus propre.')
   }
 
-  return (
-    <section className="qr-studio">
-      <div className="studio-preview">
-        <div className="section-heading">
+  if (tool === 'templates') {
+    return (
+      <div className="inspector-content">
+        <div className="inspector-heading">
           <div>
-            <p className="eyebrow">Etape 3</p>
-            <h2>Personnalisez et exportez.</h2>
+            <p className="eyebrow">Départ rapide</p>
+            <h2>Modèles</h2>
           </div>
-          <ShieldCheck className="panel-icon" aria-hidden="true" />
+          <button className="icon-text-button" type="button" onClick={onReset}>
+            <RotateCcw aria-hidden="true" />
+            Réinitialiser
+          </button>
         </div>
-
-        <div className="preview-card">
-          <div className="qr-frame" style={{ backgroundColor: options.transparentBackground ? '#f8fafc' : options.background }}>
-            {value ? (
-              <QRCodeSVG
-                ref={svgRef}
-                value={value}
-                size={options.size}
-                bgColor={options.transparentBackground ? 'transparent' : options.background}
-                fgColor={options.useGradient ? options.gradientFrom : options.foreground}
-                level={options.level}
-                marginSize={options.marginSize}
-                title="QR code LinkShort"
-                imageSettings={hasLogo ? {
-                  src: options.logoSrc,
-                  height: options.size * (options.logoSize / 100),
-                  width: options.size * (options.logoSize / 100),
-                  excavate: true,
-                } : undefined}
+        <p className="inspector-copy">Appliquez un style complet, puis ajustez chaque détail.</p>
+        <div className="preset-list">
+          {qrPresets.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              onClick={() => onChange(preset.options)}
+            >
+              <span
+                className="preset-preview"
+                style={{
+                  background: preset.options.useGradient
+                    ? `linear-gradient(135deg, ${preset.options.gradientFrom}, ${preset.options.gradientTo})`
+                    : preset.options.foreground,
+                }}
               />
-            ) : (
-              <div className="qr-placeholder">
-                <Sparkles aria-hidden="true" />
-                <span>Collez un lien pour commencer.</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="mobile-action-bar" aria-label="Actions rapides QR">
-          <button className="secondary-action" type="button" onClick={handleDownloadPng} disabled={!value}>
-            <Download aria-hidden="true" />
-            PNG
-          </button>
-          <button className="secondary-action" type="button" onClick={handleDownloadSvg} disabled={!value}>
-            <Download aria-hidden="true" />
-            SVG
-          </button>
-        </div>
-
-        {warnings.length ? (
-          <div className="warning-box">
-            {warnings.map((warning) => (
-              <p key={warning}>{warning}</p>
-            ))}
-          </div>
-        ) : (
-          <p className="success-note">Lisibilite correcte pour un usage web courant.</p>
-        )}
-      </div>
-
-      <div className="studio-controls">
-        <details className="control-section" open>
-          <summary>Presets</summary>
-          <div className="control-heading">
-            <span>Depart rapide</span>
-            <button type="button" onClick={onReset}>
-              <RotateCcw aria-hidden="true" />
-              Reinitialiser
-            </button>
-          </div>
-          <div className="preset-grid">
-            {qrPresets.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                title={preset.description}
-                onClick={() => onChange(preset.options)}
-              >
-                {preset.name}
+              <span>
+                <strong>{preset.name}</strong>
                 <small>{preset.description}</small>
-              </button>
-            ))}
-          </div>
-        </details>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
-        <details className="control-section" open>
-          <summary>Couleurs</summary>
-          <div className="control-grid">
-          <div className="control-group">
-            <label>Couleur QR</label>
-            <div className="swatch-row">
-              {foregroundColors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  className={options.foreground === color ? 'is-selected' : ''}
-                  style={{ backgroundColor: color }}
-                  onClick={() => onChange({ foreground: color, useGradient: false })}
-                  title={color}
-                />
-              ))}
+  if (tool === 'colors') {
+    return (
+      <div className="inspector-content">
+        <div className="inspector-heading">
+          <div>
+            <p className="eyebrow">Personnalisation</p>
+            <h2>Couleurs</h2>
+          </div>
+          <button className="icon-button" type="button" onClick={onReset} aria-label="Réinitialiser les couleurs">
+            <RotateCcw aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="control-group">
+          <label>Couleur du QR</label>
+          <div className="swatch-grid">
+            {foregroundColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={options.foreground === color && !options.useGradient ? 'is-selected' : ''}
+                style={{ backgroundColor: color }}
+                onClick={() => onChange({ foreground: color, useGradient: false })}
+                aria-label={`Utiliser la couleur ${color}`}
+              />
+            ))}
+            <label className="custom-color" title="Couleur personnalisée">
+              <span>+</span>
               <input
                 type="color"
                 value={options.foreground}
                 onChange={(event) => onChange({ foreground: event.target.value, useGradient: false })}
-                title="Couleur personnalisee"
               />
-            </div>
+            </label>
           </div>
+        </div>
 
-          <div className="control-group">
-            <label>Fond</label>
-            <div className="swatch-row">
-              {backgroundColors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  className={options.background === color && !options.transparentBackground ? 'is-selected' : ''}
-                  style={{ backgroundColor: color }}
-                  onClick={() => onChange({ background: color, transparentBackground: false })}
-                  title={color}
-                />
-              ))}
+        <div className="control-group">
+          <label>Arrière-plan</label>
+          <div className="swatch-grid">
+            {backgroundColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={options.background === color && !options.transparentBackground ? 'is-selected' : ''}
+                style={{ backgroundColor: color }}
+                onClick={() => onChange({ background: color, transparentBackground: false })}
+                aria-label={`Utiliser le fond ${color}`}
+              />
+            ))}
+            <label className="custom-color" title="Fond personnalisé">
+              <span>+</span>
               <input
                 type="color"
                 value={options.background}
                 onChange={(event) => onChange({ background: event.target.value, transparentBackground: false })}
-                title="Fond personnalise"
               />
-            </div>
-            <label className="check-row" title="Utile surtout pour export SVG ou PNG web.">
-              <input
-                type="checkbox"
-                checked={options.transparentBackground}
-                onChange={(event) => onChange({ transparentBackground: event.target.checked })}
-              />
-              Fond transparent
             </label>
           </div>
-          </div>
+          <label className="toggle-row">
+            <span>
+              <strong>Fond transparent</strong>
+              <small>Utile pour les exports web.</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={options.transparentBackground}
+              onChange={(event) => onChange({ transparentBackground: event.target.checked })}
+            />
+          </label>
+        </div>
 
-          <div className="control-group">
-          <label className="check-row" title="Ajoute un degrade vectoriel sur le QR.">
+        <div className="control-group">
+          <label className="toggle-row">
+            <span>
+              <strong>Dégradé</strong>
+              <small>Appliquer deux couleurs au QR.</small>
+            </span>
             <input
               type="checkbox"
               checked={options.useGradient}
               onChange={(event) => onChange({ useGradient: event.target.checked })}
             />
-            Activer le degrade
           </label>
-          <div className="double-controls">
-            <input
-              type="color"
-              value={options.gradientFrom}
-              onChange={(event) => onChange({ gradientFrom: event.target.value, useGradient: true })}
-              title="Debut du degrade"
-            />
-            <input
-              type="color"
-              value={options.gradientTo}
-              onChange={(event) => onChange({ gradientTo: event.target.value, useGradient: true })}
-              title="Fin du degrade"
-            />
-          </div>
-          </div>
-        </details>
-
-        <details className="control-section">
-          <summary>Style</summary>
-          <div className="control-grid">
-          <div className="control-group">
-            <label>Forme</label>
-            <div className="segmented">
-              {styleModes.map((mode) => (
-                <button
-                  key={mode.id}
-                  type="button"
-                  className={options.styleMode === mode.id ? 'is-active' : ''}
-                  onClick={() => onChange({ styleMode: mode.id })}
-                >
-                  {mode.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="control-group">
-            <label>Coins</label>
-            <div className="segmented">
-              {(['classic', 'rounded', 'accent'] as const).map((style) => (
-                <button
-                  key={style}
-                  type="button"
-                  className={options.cornerStyle === style ? 'is-active' : ''}
-                  onClick={() => onChange({ cornerStyle: style })}
-                >
-                  {style === 'classic' ? 'Simple' : style === 'rounded' ? 'Rond' : 'Accent'}
-                </button>
-              ))}
-            </div>
-            <input
-              className="wide-color"
-              type="color"
-              value={options.cornerColor}
-              onChange={(event) => onChange({ cornerColor: event.target.value })}
-              title="Couleur des coins"
-            />
-          </div>
-          </div>
-
-          <div className="control-grid">
-          <div className="control-group">
-            <label>Taille aperçu: {options.size}px</label>
-            <input
-              type="range"
-              min="180"
-              max="360"
-              step="10"
-              value={options.size}
-              onChange={(event) => onChange({ size: Number(event.target.value) })}
-            />
-          </div>
-
-          <div className="control-group">
-            <label>Marge: {options.marginSize} modules</label>
-            <input
-              type="range"
-              min="0"
-              max="8"
-              step="1"
-              value={options.marginSize}
-              onChange={(event) => onChange({ marginSize: Number(event.target.value) })}
-            />
-          </div>
-          </div>
-        </details>
-
-        <details className="control-section" open>
-          <summary>Logo</summary>
-          <div className="logo-designer">
-            <div className="logo-preview">
-              {options.logoSrc ? (
-                <img src={options.logoSrc} alt="Aperçu du logo" />
-              ) : (
-                <ImagePlus aria-hidden="true" />
-              )}
-            </div>
-            <div>
-              <p className="microcopy">
-                Le logo est integre comme badge propre au centre du QR. Gardez une taille de 18-22% pour un scan fiable.
-              </p>
-              <div className="logo-row">
-                <label className="file-button">
-                  <ImagePlus aria-hidden="true" />
-                  Importer
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0]
-                      if (file) {
-                        readLogoFile(file, (src) => onChange({ logoSrc: src, showLogo: true, level: 'H', logoSize: 20, marginSize: 4 }))
-                      }
-                      event.target.value = ''
-                    }}
-                  />
-                </label>
-                <button className="secondary-action" type="button" onClick={handleAutoFitLogo} disabled={!options.logoSrc}>
-                  Adapter automatiquement
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="control-grid">
-            <div className="control-group">
-              <label>Forme du badge</label>
-              <div className="segmented">
-                {logoFrameShapes.map((shape) => (
-                  <button
-                    key={shape.id}
-                    type="button"
-                    className={options.logoFrameShape === shape.id ? 'is-active' : ''}
-                    onClick={() => onChange({ logoFrameShape: shape.id })}
-                    disabled={!options.logoSrc}
-                  >
-                    {shape.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="control-group">
-              <label>Remplissage: {options.logoPadding}</label>
+          <div className="gradient-controls">
+            <label>
               <input
-                type="range"
-                min="4"
-                max="16"
-                step="1"
-                value={options.logoPadding}
-                disabled={!options.logoSrc}
-                onChange={(event) => onChange({ logoPadding: Number(event.target.value) })}
-              />
-            </div>
-          </div>
-
-          <div className="control-grid">
-            <div className="control-group">
-              <label>Fond du badge</label>
-              <input
-                className="wide-color"
                 type="color"
-                value={options.logoBackground}
-                disabled={!options.logoSrc}
-                onChange={(event) => onChange({ logoBackground: event.target.value })}
+                value={options.gradientFrom}
+                onChange={(event) => onChange({ gradientFrom: event.target.value, useGradient: true })}
               />
-            </div>
-            <div className="control-group">
-              <label>Bordure du badge</label>
+              Début
+            </label>
+            <span aria-hidden="true">→</span>
+            <label>
               <input
-                className="wide-color"
                 type="color"
-                value={options.logoBorderColor}
-                disabled={!options.logoSrc}
-                onChange={(event) => onChange({ logoBorderColor: event.target.value })}
+                value={options.gradientTo}
+                onChange={(event) => onChange({ gradientTo: event.target.value, useGradient: true })}
               />
-            </div>
+              Fin
+            </label>
           </div>
+        </div>
+      </div>
+    )
+  }
 
-          <div className="control-grid">
-            <div className="control-group">
-              <label>Taille logo: {options.logoSize}%</label>
-              <input
-                type="range"
-                min="12"
-                max="28"
-                step="1"
-                value={options.logoSize}
-                disabled={!options.logoSrc}
-                onChange={(event) => onChange({ logoSize: Number(event.target.value), level: 'H' })}
-              />
-            </div>
-            <div className="control-group stacked-checks">
-              <label className="check-row">
-                <input
-                  type="checkbox"
-                  checked={options.showLogo}
-                  disabled={!options.logoSrc}
-                  onChange={(event) => onChange({ showLogo: event.target.checked, level: event.target.checked ? 'H' : options.level })}
-                />
-                Afficher le logo
-              </label>
-              <label className="check-row">
-                <input
-                  type="checkbox"
-                  checked={options.logoShadow}
-                  disabled={!options.logoSrc}
-                  onChange={(event) => onChange({ logoShadow: event.target.checked })}
-                />
-                Ombre douce
-              </label>
-            </div>
+  if (tool === 'shape') {
+    return (
+      <div className="inspector-content">
+        <div className="inspector-heading">
+          <div>
+            <p className="eyebrow">Modules et coins</p>
+            <h2>Forme</h2>
           </div>
+          <button className="icon-button" type="button" onClick={onReset} aria-label="Réinitialiser la forme">
+            <RotateCcw aria-hidden="true" />
+          </button>
+        </div>
 
-          <div className="segmented fit-control">
-            {(['contain', 'cover'] as const).map((fit) => (
+        <div className="control-group">
+          <label>Style des modules</label>
+          <div className="option-grid">
+            {styleModes.map((mode) => (
               <button
-                key={fit}
+                key={mode.id}
                 type="button"
-                className={options.logoFit === fit ? 'is-active' : ''}
-                disabled={!options.logoSrc}
-                onClick={() => onChange({ logoFit: fit })}
+                className={options.styleMode === mode.id ? 'is-active' : ''}
+                onClick={() => onChange({ styleMode: mode.id })}
               >
-                {fit === 'contain' ? 'Logo entier' : 'Remplir badge'}
+                <span className={`module-sample sample-${mode.id}`} />
+                {mode.label}
               </button>
             ))}
           </div>
+        </div>
 
-          <button className="secondary-action remove-logo" type="button" onClick={() => onChange({ logoSrc: '', showLogo: false })} disabled={!options.logoSrc}>
-            Retirer le logo
-          </button>
-        </details>
+        <div className="control-group">
+          <label>Style des coins</label>
+          <div className="segmented">
+            {(['classic', 'rounded', 'accent'] as const).map((style) => (
+              <button
+                key={style}
+                type="button"
+                className={options.cornerStyle === style ? 'is-active' : ''}
+                onClick={() => onChange({ cornerStyle: style })}
+              >
+                {style === 'classic' ? 'Simple' : style === 'rounded' ? 'Arrondi' : 'Accent'}
+              </button>
+            ))}
+          </div>
+          <label className="color-field">
+            <span>Couleur des coins</span>
+            <input
+              type="color"
+              value={options.cornerColor}
+              onChange={(event) => onChange({ cornerColor: event.target.value })}
+            />
+          </label>
+        </div>
 
-        <details className="control-section">
-          <summary>Export</summary>
-          <div className="control-grid">
-          <div className="control-group">
-            <label>Correction</label>
-            <div className="segmented">
-              {qrLevels.map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  className={options.level === level ? 'is-active' : ''}
-                  onClick={() => onChange({ level })}
-                  title="Plus le niveau est haut, plus le QR tolere un logo ou une degradation."
-                >
-                  {level}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="control-group range-stack">
+          <label>
+            <span>Taille d’aperçu</span>
+            <output>{options.size}px</output>
+          </label>
+          <input
+            type="range"
+            min="180"
+            max="360"
+            step="10"
+            value={options.size}
+            onChange={(event) => onChange({ size: Number(event.target.value) })}
+          />
+          <label>
+            <span>Marge</span>
+            <output>{options.marginSize} modules</output>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="8"
+            step="1"
+            value={options.marginSize}
+            onChange={(event) => onChange({ marginSize: Number(event.target.value) })}
+          />
+        </div>
 
-          <div className="control-group">
-            <label>Export</label>
-            <div className="segmented">
-              {exportSizes.map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  className={options.exportSize === size ? 'is-active' : ''}
-                  onClick={() => onChange({ exportSize: size })}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
+        <div className="control-group">
+          <label>Correction d’erreur</label>
+          <div className="segmented">
+            {qrLevels.map((level) => (
+              <button
+                key={level}
+                type="button"
+                className={options.level === level ? 'is-active' : ''}
+                onClick={() => onChange({ level })}
+              >
+                {level}
+              </button>
+            ))}
           </div>
-          </div>
-          <p className="microcopy">Pour une affiche ou un support imprime, choisissez 2048 px puis testez le scan avant publication.</p>
-        </details>
+        </div>
+
       </div>
-    </section>
+    )
+  }
+
+  if (tool === 'export') {
+    return (
+      <div className="inspector-content export-controls">
+        <div className="inspector-heading">
+          <div>
+            <p className="eyebrow">Téléchargement</p>
+            <h2>Exporter</h2>
+          </div>
+        </div>
+        <p className="inspector-copy">Choisissez la définition et le format de votre QR code.</p>
+
+        <div className="control-group">
+          <label>Taille d’export</label>
+          <div className="segmented export-sizes">
+            {exportSizes.map((size) => (
+              <button
+                key={size}
+                type="button"
+                className={options.exportSize === size ? 'is-active' : ''}
+                onClick={() => onChange({ exportSize: size })}
+              >
+                {size}px
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="export-format-grid">
+          <button type="button" onClick={onDownloadPng}>
+            <Download aria-hidden="true" />
+            <span>
+              <strong>PNG</strong>
+              <small>Image prête à partager</small>
+            </span>
+          </button>
+          <button type="button" onClick={onDownloadSvg}>
+            <Download aria-hidden="true" />
+            <span>
+              <strong>SVG</strong>
+              <small>Format vectoriel</small>
+            </span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="inspector-content">
+      <div className="inspector-heading">
+        <div>
+          <p className="eyebrow">Identité visuelle</p>
+          <h2>Logo</h2>
+        </div>
+      </div>
+
+      <div className="logo-upload">
+        <div className="logo-preview">
+          {options.logoSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={options.logoSrc} alt="Aperçu du logo" />
+          ) : (
+            <ImagePlus aria-hidden="true" />
+          )}
+        </div>
+        <div>
+          <strong>{options.logoSrc ? 'Logo importé' : 'Ajoutez votre logo'}</strong>
+          <p>Une taille de 18 à 22 % offre généralement le meilleur résultat.</p>
+          <label className="file-button">
+            <ImagePlus aria-hidden="true" />
+            Importer
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) {
+                  readLogoFile(file, (src) => onChange({
+                    logoSrc: src,
+                    showLogo: true,
+                    level: 'H',
+                    logoSize: 20,
+                    marginSize: 4,
+                  }))
+                }
+                event.target.value = ''
+              }}
+            />
+          </label>
+        </div>
+      </div>
+
+      <button className="secondary-action full-width" type="button" onClick={handleAutoFitLogo} disabled={!options.logoSrc}>
+        Adapter automatiquement
+      </button>
+
+      <div className="control-group">
+        <label>Forme du badge</label>
+        <div className="segmented">
+          {logoFrameShapes.map((shape) => (
+            <button
+              key={shape.id}
+              type="button"
+              className={options.logoFrameShape === shape.id ? 'is-active' : ''}
+              onClick={() => onChange({ logoFrameShape: shape.id })}
+              disabled={!options.logoSrc}
+            >
+              {shape.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="control-group range-stack">
+        <label>
+          <span>Taille du logo</span>
+          <output>{options.logoSize}%</output>
+        </label>
+        <input
+          type="range"
+          min="12"
+          max="28"
+          step="1"
+          value={options.logoSize}
+          disabled={!options.logoSrc}
+          onChange={(event) => onChange({ logoSize: Number(event.target.value), level: 'H' })}
+        />
+        <label>
+          <span>Remplissage</span>
+          <output>{options.logoPadding}</output>
+        </label>
+        <input
+          type="range"
+          min="4"
+          max="16"
+          step="1"
+          value={options.logoPadding}
+          disabled={!options.logoSrc}
+          onChange={(event) => onChange({ logoPadding: Number(event.target.value) })}
+        />
+      </div>
+
+      <div className="control-group color-pair">
+        <label>
+          <span>Fond du badge</span>
+          <input
+            type="color"
+            value={options.logoBackground}
+            disabled={!options.logoSrc}
+            onChange={(event) => onChange({ logoBackground: event.target.value })}
+          />
+        </label>
+        <label>
+          <span>Bordure</span>
+          <input
+            type="color"
+            value={options.logoBorderColor}
+            disabled={!options.logoSrc}
+            onChange={(event) => onChange({ logoBorderColor: event.target.value })}
+          />
+        </label>
+      </div>
+
+      <div className="control-group">
+        <label className="toggle-row">
+          <span><strong>Afficher le logo</strong></span>
+          <input
+            type="checkbox"
+            checked={options.showLogo}
+            disabled={!options.logoSrc}
+            onChange={(event) => onChange({
+              showLogo: event.target.checked,
+              level: event.target.checked ? 'H' : options.level,
+            })}
+          />
+        </label>
+        <label className="toggle-row">
+          <span><strong>Ombre douce</strong></span>
+          <input
+            type="checkbox"
+            checked={options.logoShadow}
+            disabled={!options.logoSrc}
+            onChange={(event) => onChange({ logoShadow: event.target.checked })}
+          />
+        </label>
+      </div>
+
+      <div className="segmented">
+        {(['contain', 'cover'] as const).map((fit) => (
+          <button
+            key={fit}
+            type="button"
+            className={options.logoFit === fit ? 'is-active' : ''}
+            disabled={!options.logoSrc}
+            onClick={() => onChange({ logoFit: fit })}
+          >
+            {fit === 'contain' ? 'Logo entier' : 'Remplir le badge'}
+          </button>
+        ))}
+      </div>
+
+      <button
+        className="danger-link"
+        type="button"
+        onClick={() => onChange({ logoSrc: '', showLogo: false })}
+        disabled={!options.logoSrc}
+      >
+        Retirer le logo
+      </button>
+    </div>
   )
 }

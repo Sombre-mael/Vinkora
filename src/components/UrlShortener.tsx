@@ -26,24 +26,25 @@ export function UrlShortener({
     <section className="tool-panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Etape 1</p>
-          <h2>Collez votre lien.</h2>
+          <p className="eyebrow">Destination</p>
+          <h2>Ajoutez votre lien</h2>
         </div>
         <Link2 className="panel-icon" aria-hidden="true" />
       </div>
 
       <p className="helper-text">
-        Entrez une URL, puis choisissez si vous voulez un lien court ou seulement un QR code.
+        Créez gratuitement un QR statique. Les liens courts Vinkora arriveront avec Pass Événement et Starter.
       </p>
 
-      <div className="mode-switch" aria-label="Mode de generation">
+      <div className="mode-switch" aria-label="Mode de génération">
         <button
           type="button"
           className={mode === 'shorten' ? 'is-active' : ''}
-          onClick={() => onModeChange('shorten')}
+          disabled
+          title="Disponible prochainement avec une offre payante"
         >
           <Scissors aria-hidden="true" />
-          Raccourcir
+          Lien court · bientôt
         </button>
         <button
           type="button"
@@ -80,7 +81,12 @@ export function UrlShortener({
 
       {error ? <p className="inline-error">{error}</p> : null}
 
-      <button className="primary-action" type="button" onClick={onSubmit} disabled={isLoading}>
+      <button
+        className="primary-action"
+        type="button"
+        onClick={onSubmit}
+        disabled={isLoading || mode === 'shorten'}
+      >
         {isLoading ? (
           <>
             <span className="spinner" aria-hidden="true" />
@@ -89,12 +95,12 @@ export function UrlShortener({
         ) : mode === 'shorten' ? (
           <>
             <Scissors aria-hidden="true" />
-            Raccourcir le lien
+            Bientôt disponible
           </>
         ) : (
           <>
             <QrCode aria-hidden="true" />
-            Generer le QR code
+            Générer le QR code
           </>
         )}
       </button>

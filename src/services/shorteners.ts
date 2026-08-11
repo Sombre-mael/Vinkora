@@ -36,35 +36,39 @@ export const prepareUrl = (url: string) => {
   return normalized
 }
 
-const shortenWithIsGd = async (url: string) => {
-  const response = await fetch(
-    `https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}`,
-  )
+const shortenWithVinkora = async (url: string) => {
+  const response = await fetch('/api/links', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ originalUrl: url }),
+  })
+
+  const data = (await response.json().catch(() => null)) as {
+    shortPath?: string
+    error?: string
+  } | null
 
   if (!response.ok) {
-    throw new Error('Le service de raccourcissement est indisponible.')
+    throw new Error(data?.error || 'Le service de raccourcissement est indisponible.')
   }
 
-  const data = (await response.json()) as {
-    shorturl?: string
-    errormessage?: string
+  if (!data?.shortPath) {
+    throw new Error('La réponse du service de raccourcissement est invalide.')
   }
 
-  if (!data.shorturl) {
-    throw new Error(data.errormessage || 'Impossible de raccourcir cette URL.')
-  }
-
-  return data.shorturl
+  return new URL(data.shortPath, window.location.origin).toString()
 }
 
 export const shortenerProviders: ShortenerProvider[] = [
   {
-    id: 'isgd',
-    name: 'is.gd',
-    shorten: shortenWithIsGd,
+    id: 'vinkora',
+    name: 'Vinkora',
+    shorten: shortenWithVinkora,
   },
 ]
 
-export const getShortenerProvider = (id = 'isgd') => {
+export const getShortenerProvider = (id = 'vinkora') => {
   return shortenerProviders.find((provider) => provider.id === id) ?? shortenerProviders[0]
 }

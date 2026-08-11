@@ -11,10 +11,10 @@ export function ResultPanel({ result, copied, onCopy }: ResultPanelProps) {
   if (!result) {
     return (
       <section className="tool-panel muted-panel">
-        <p className="eyebrow">Etape 2</p>
-        <h2>Generez votre lien.</h2>
+        <p className="eyebrow">Résultat</p>
+        <h2>Votre lien apparaîtra ici</h2>
         <p>
-          Apres generation, vous pourrez copier le lien et le QR sera pret a personnaliser.
+          Après génération, vous pourrez copier le lien et personnaliser immédiatement le QR code.
         </p>
       </section>
     )
@@ -27,7 +27,7 @@ export function ResultPanel({ result, copied, onCopy }: ResultPanelProps) {
       <div className="section-heading">
         <div>
           <p className="eyebrow">{label}</p>
-          <h2>{result.mode === 'shorten' ? 'Pret a partager.' : 'QR code pret sans raccourcissement.'}</h2>
+          <h2>{result.mode === 'shorten' ? 'Prêt à partager' : 'QR code prêt sans raccourcissement'}</h2>
         </div>
         <Check className="panel-icon success" aria-hidden="true" />
       </div>
@@ -39,7 +39,7 @@ export function ResultPanel({ result, copied, onCopy }: ResultPanelProps) {
 
       <button className="secondary-action" type="button" onClick={onCopy}>
         {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-        {copied ? 'Copie' : 'Copier'}
+        {copied ? 'Copié' : 'Copier'}
       </button>
     </section>
   )

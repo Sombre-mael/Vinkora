@@ -1,4 +1,4 @@
-export type ShortenerProviderId = 'isgd'
+export type ShortenerProviderId = 'vinkora'
 
 export type ShortenerProvider = {
   id: ShortenerProviderId

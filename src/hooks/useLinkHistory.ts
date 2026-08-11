@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { QrOptions, ShortenedLink } from '@/types/link'
 
-const STORAGE_KEY = 'linkshort-history-v1'
+const STORAGE_KEY = 'vinkora-history-v1'
+const LEGACY_STORAGE_KEY = ['link', 'short-history-v1'].join('')
 
 const createId = () => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -17,7 +18,15 @@ const readHistory = () => {
   }
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    const currentHistory = window.localStorage.getItem(STORAGE_KEY)
+    const legacyHistory = window.localStorage.getItem(LEGACY_STORAGE_KEY)
+    const raw = currentHistory ?? legacyHistory
+
+    if (!currentHistory && legacyHistory) {
+      window.localStorage.setItem(STORAGE_KEY, legacyHistory)
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY)
+    }
+
     return raw ? (JSON.parse(raw) as ShortenedLink[]) : []
   } catch {
     return []

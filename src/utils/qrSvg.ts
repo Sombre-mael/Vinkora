@@ -12,7 +12,7 @@ const getMainPaths = (svg: SVGSVGElement) => {
 }
 
 const removeGenerated = (svg: SVGSVGElement) => {
-  svg.querySelectorAll('[data-linkshort-generated="true"]').forEach((node) => node.remove())
+  svg.querySelectorAll('[data-vinkora-generated="true"]').forEach((node) => node.remove())
 }
 
 const ensureDefs = (svg: SVGSVGElement) => {
@@ -29,12 +29,12 @@ const ensureDefs = (svg: SVGSVGElement) => {
 const addGradient = (svg: SVGSVGElement, options: QrOptions) => {
   const defs = ensureDefs(svg)
   const gradient = document.createElementNS(SVG_NS, 'linearGradient')
-  gradient.setAttribute('id', 'linkshort-qr-gradient')
+  gradient.setAttribute('id', 'vinkora-qr-gradient')
   gradient.setAttribute('x1', '0%')
   gradient.setAttribute('y1', '0%')
   gradient.setAttribute('x2', '100%')
   gradient.setAttribute('y2', '100%')
-  gradient.setAttribute('data-linkshort-generated', 'true')
+  gradient.setAttribute('data-vinkora-generated', 'true')
 
   const start = document.createElementNS(SVG_NS, 'stop')
   start.setAttribute('offset', '0%')
@@ -55,13 +55,13 @@ const addStyleFilter = (svg: SVGSVGElement, options: QrOptions) => {
 
   const defs = ensureDefs(svg)
   const filter = document.createElementNS(SVG_NS, 'filter')
-  filter.setAttribute('id', 'linkshort-qr-soften')
+  filter.setAttribute('id', 'vinkora-qr-soften')
   filter.setAttribute('x', '-3%')
   filter.setAttribute('y', '-3%')
   filter.setAttribute('width', '106%')
   filter.setAttribute('height', '106%')
   filter.setAttribute('color-interpolation-filters', 'sRGB')
-  filter.setAttribute('data-linkshort-generated', 'true')
+  filter.setAttribute('data-vinkora-generated', 'true')
 
   const blur = document.createElementNS(SVG_NS, 'feGaussianBlur')
   blur.setAttribute('in', 'SourceGraphic')
@@ -78,7 +78,7 @@ const addStyleFilter = (svg: SVGSVGElement, options: QrOptions) => {
   filter.append(blur, contrast)
   defs.appendChild(filter)
 
-  return 'url(#linkshort-qr-soften)'
+  return 'url(#vinkora-qr-soften)'
 }
 
 const addCornerAccents = (svg: SVGSVGElement, options: QrOptions) => {
@@ -111,7 +111,7 @@ const addCornerAccents = (svg: SVGSVGElement, options: QrOptions) => {
     rect.setAttribute('stroke', options.cornerColor)
     rect.setAttribute('stroke-width', options.cornerStyle === 'accent' ? '0.7' : '0.45')
     rect.setAttribute('rx', options.cornerStyle === 'classic' ? '0' : '1.25')
-    rect.setAttribute('data-linkshort-generated', 'true')
+    rect.setAttribute('data-vinkora-generated', 'true')
     svg.appendChild(rect)
   })
 }
@@ -127,12 +127,12 @@ const getFrameRadius = (shape: QrOptions['logoFrameShape'], width: number, heigh
 const addLogoFrameShadow = (svg: SVGSVGElement) => {
   const defs = ensureDefs(svg)
   const filter = document.createElementNS(SVG_NS, 'filter')
-  filter.setAttribute('id', 'linkshort-logo-shadow')
+  filter.setAttribute('id', 'vinkora-logo-shadow')
   filter.setAttribute('x', '-30%')
   filter.setAttribute('y', '-30%')
   filter.setAttribute('width', '160%')
   filter.setAttribute('height', '160%')
-  filter.setAttribute('data-linkshort-generated', 'true')
+  filter.setAttribute('data-vinkora-generated', 'true')
 
   const shadow = document.createElementNS(SVG_NS, 'feDropShadow')
   shadow.setAttribute('dx', '0')
@@ -162,12 +162,12 @@ const addLogoBadge = (svg: SVGSVGElement, options: QrOptions) => {
   const frameWidth = width + padding * 2
   const frameHeight = height + padding * 2
   const radius = getFrameRadius(options.logoFrameShape, frameWidth, frameHeight)
-  const clipId = 'linkshort-logo-clip'
+  const clipId = 'vinkora-logo-clip'
 
   const defs = ensureDefs(svg)
   const clipPath = document.createElementNS(SVG_NS, 'clipPath')
   clipPath.setAttribute('id', clipId)
-  clipPath.setAttribute('data-linkshort-generated', 'true')
+  clipPath.setAttribute('data-vinkora-generated', 'true')
 
   const clipShape = document.createElementNS(SVG_NS, 'rect')
   clipShape.setAttribute('x', String(x))
@@ -183,9 +183,9 @@ const addLogoBadge = (svg: SVGSVGElement, options: QrOptions) => {
   }
 
   const group = document.createElementNS(SVG_NS, 'g')
-  group.setAttribute('data-linkshort-generated', 'true')
+  group.setAttribute('data-vinkora-generated', 'true')
   if (options.logoShadow) {
-    group.setAttribute('filter', 'url(#linkshort-logo-shadow)')
+    group.setAttribute('filter', 'url(#vinkora-logo-shadow)')
   }
 
   const frame = document.createElementNS(SVG_NS, 'rect')
@@ -232,7 +232,7 @@ export const applyQrSvgEnhancements = (svg: SVGSVGElement | null, options: QrOpt
   if (foregroundPath) {
     if (options.useGradient) {
       addGradient(svg, options)
-      foregroundPath.setAttribute('fill', 'url(#linkshort-qr-gradient)')
+      foregroundPath.setAttribute('fill', 'url(#vinkora-qr-gradient)')
     } else {
       foregroundPath.setAttribute('fill', options.foreground)
     }
@@ -267,7 +267,7 @@ export const downloadSvg = (sourceSvg: SVGSVGElement, options: QrOptions) => {
   const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = `linkshort-qr-${Date.now()}.svg`
+  link.download = `vinkora-qr-${Date.now()}.svg`
   link.click()
   URL.revokeObjectURL(link.href)
 }
@@ -291,7 +291,7 @@ export const downloadPng = (sourceSvg: SVGSVGElement, options: QrOptions) => {
     context?.drawImage(image, 0, 0, options.exportSize, options.exportSize)
 
     const link = document.createElement('a')
-    link.download = `linkshort-qr-${options.exportSize}-${Date.now()}.png`
+    link.download = `vinkora-qr-${options.exportSize}-${Date.now()}.png`
     link.href = canvas.toDataURL('image/png')
     link.click()
     URL.revokeObjectURL(svgUrl)

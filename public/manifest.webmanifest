@@ -1,39 +1,39 @@
 {
-  "name": "LinkShort",
-  "short_name": "LinkShort",
-  "description": "Raccourcissez vos liens et creez des QR codes personnalisables.",
-  "start_url": "/LinkShort/",
-  "scope": "/LinkShort/",
+  "name": "Vinkora",
+  "short_name": "Vinkora",
+  "description": "Vinkora permet de raccourcir vos liens et de créer des QR codes personnalisés, prêts à être partagés.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f8fafc",
-  "theme_color": "#0f172a",
+  "background_color": "#F8FAFC",
+  "theme_color": "#0B1220",
   "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "/LinkShort/icons/icon-192.svg",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/LinkShort/icons/icon-512.svg",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
     {
-      "name": "Creer un QR code",
+      "name": "Créer un QR code",
       "short_name": "QR code",
-      "description": "Ouvrir LinkShort pour generer un QR code.",
-      "url": "/LinkShort/",
+      "description": "Ouvrir Vinkora pour générer un QR code.",
+      "url": "/",
       "icons": [
         {
-          "src": "/LinkShort/icons/icon-192.svg",
+          "src": "/icons/icon-192.png",
           "sizes": "192x192",
-          "type": "image/svg+xml"
+          "type": "image/png"
         }
       ]
     }

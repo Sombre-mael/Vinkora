@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { getShortenerProvider, prepareUrl } from '@/services/shorteners'
+import { prepareUrl } from '@/services/shorteners'
 
 export type ShortenMode = 'shorten' | 'qr-only'
 
@@ -39,29 +39,9 @@ export const useUrlShortener = () => {
       return nextResult
     }
 
-    setIsLoading(true)
-
-    try {
-      const provider = getShortenerProvider()
-      const shortUrl = await provider.shorten(preparedUrl)
-      const nextResult = {
-        originalUrl: preparedUrl,
-        outputUrl: shortUrl,
-        mode,
-      }
-
-      setResult(nextResult)
-      return nextResult
-    } catch (err) {
-      const message = err instanceof Error
-        ? err.message
-        : 'Erreur reseau. Reessayez dans quelques instants.'
-
-      setError(message)
-      throw new Error(message)
-    } finally {
-      setIsLoading(false)
-    }
+    const message = 'Les liens courts Vinkora nécessiteront une authentification et une offre active.'
+    setError(message)
+    throw new Error(message)
   }
 
   const resetResult = () => {

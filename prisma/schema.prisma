@@ -1,0 +1,359 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum PlanType {
+  PASS
+  SUBSCRIPTION
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  GRACE_PERIOD
+  EXPIRED
+  SUSPENDED
+  CANCELLED
+}
+
+enum ActivationMode {
+  MANUAL
+  AUTOMATIC
+}
+
+enum Currency {
+  USD
+  CDF
+}
+
+enum PaymentOperator {
+  M_PESA
+  AIRTEL_MONEY
+  ORANGE_MONEY
+  CASH
+  BANK
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  REFUNDED
+}
+
+enum ResourceStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum LinkOwnership {
+  USER_OWNED
+  LEGACY_ANONYMOUS
+}
+
+enum PostGraceBehavior {
+  KEEP_REDIRECTING
+  SHOW_EXPIRED_PAGE
+  DISABLE_REDIRECT
+}
+
+model User {
+  id     String     @id @default(cuid())
+  email  String     @unique @db.VarChar(320)
+  role   UserRole   @default(USER)
+  status UserStatus @default(ACTIVE)
+
+  authIdentities         AuthIdentity[]
+  profile                Profile?
+  subscriptions          Subscription[] @relation("SubscriptionOwner")
+  activatedSubscriptions Subscription[] @relation("SubscriptionActivator")
+  payments               Payment[]      @relation("PaymentOwner")
+  verifiedPayments       Payment[]      @relation("PaymentVerifier")
+  links                  Link[]
+  qrCodes                QrCode[]
+  auditLogs              AuditLog[]     @relation("AuditActor")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role, status])
+  @@index([createdAt])
+}
+
+model AuthIdentity {
+  id       String @id @default(cuid())
+  userId   String
+  provider String @db.VarChar(80)
+  subject  String @db.VarChar(191)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, subject])
+  @@index([userId])
+}
+
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  name           String? @db.VarChar(120)
+  phoneEncrypted String? @db.Text
+  phoneLast4     String? @db.VarChar(4)
+  company        String? @db.VarChar(160)
+  city           String? @db.VarChar(120)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Plan {
+  id   String @id @default(cuid())
+  code String @unique @db.VarChar(50)
+  name String @unique @db.VarChar(120)
+
+  type         PlanType
+  /// Nombre exact de jours consecutifs; 30 jours ne representent pas un mois civil.
+  durationDays Int
+
+  priceUsd Decimal  @db.Decimal(12, 2)
+  priceCdf Decimal? @db.Decimal(16, 2)
+
+  /// NULL signifie illimite.
+  linkQuota   Int?
+  qrCodeQuota Int?
+
+  analyticsEnabled  Boolean           @default(false)
+  gracePeriodDays   Int               @default(0)
+  postGraceBehavior PostGraceBehavior @default(SHOW_EXPIRED_PAGE)
+
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, displayOrder])
+  @@index([type, isActive])
+}
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String
+  planId String
+
+  status         SubscriptionStatus @default(PENDING)
+  activationMode ActivationMode
+
+  startsAt      DateTime?
+  endsAt        DateTime?
+  graceEndsAt   DateTime?
+  activatedAt   DateTime?
+  suspendedAt   DateTime?
+  cancelledAt   DateTime?
+  activatedById String?
+
+  renewedFromId String? @unique
+
+  /// Ces snapshots sont obligatoires des la creation PENDING.
+  planCodeSnapshot          String            @db.VarChar(50)
+  planNameSnapshot          String            @db.VarChar(120)
+  durationDaysSnapshot      Int
+  priceUsdSnapshot          Decimal           @db.Decimal(12, 2)
+  priceCdfSnapshot          Decimal?          @db.Decimal(16, 2)
+  linkQuotaSnapshot         Int?
+  qrCodeQuotaSnapshot       Int?
+  analyticsEnabledSnapshot  Boolean
+  gracePeriodDaysSnapshot   Int
+  postGraceBehaviorSnapshot PostGraceBehavior
+
+  user User @relation("SubscriptionOwner", fields: [userId], references: [id], onDelete: Restrict)
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  activatedBy User? @relation("SubscriptionActivator", fields: [activatedById], references: [id], onDelete: SetNull)
+
+  renewedFrom Subscription? @relation("SubscriptionRenewals", fields: [renewedFromId], references: [id], onDelete: Restrict)
+
+  renewal Subscription? @relation("SubscriptionRenewals")
+
+  payments       Payment[]
+  createdLinks   Link[]    @relation("LinkCreationSubscription")
+  createdQrCodes QrCode[]  @relation("QrCreationSubscription")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([id, userId])
+  @@index([userId, status, endsAt])
+  @@index([planId, status])
+  @@index([status, graceEndsAt])
+}
+
+model Payment {
+  id             String @id @default(cuid())
+  userId         String
+  subscriptionId String
+
+  amount   Decimal         @db.Decimal(16, 2)
+  currency Currency
+  operator PaymentOperator
+  status   PaymentStatus   @default(PENDING)
+
+  /// Valeur normalisee; une chaine vide doit devenir NULL.
+  transactionReference String? @db.VarChar(191)
+
+  payerPhoneEncrypted String? @db.Text
+  payerPhoneLast4     String? @db.VarChar(4)
+
+  paidAt       DateTime?
+  verifiedAt   DateTime?
+  verifiedById String?
+
+  notes String? @db.Text
+
+  user User @relation("PaymentOwner", fields: [userId], references: [id], onDelete: Restrict)
+
+  subscription Subscription @relation(fields: [subscriptionId, userId], references: [id, userId], onDelete: Restrict)
+
+  verifiedBy User? @relation("PaymentVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([operator, transactionReference])
+  @@index([userId, status, createdAt])
+  @@index([subscriptionId, status])
+  @@index([verifiedById, verifiedAt])
+}
+
+model Link {
+  id      String  @id @default(cuid())
+  ownerId String?
+
+  createdUnderSubscriptionId String?
+  ownership                  LinkOwnership @default(USER_OWNED)
+
+  slug           String         @unique @db.VarChar(64)
+  destinationUrl String         @db.Text
+  title          String?        @db.VarChar(180)
+  status         ResourceStatus @default(ACTIVE)
+
+  clickCount    Int       @default(0)
+  lastClickedAt DateTime?
+
+  /// Champs conserves temporairement pour la migration progressive.
+  originalUrl String @db.Text
+  clicks      Int    @default(0)
+
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  creationSubscription Subscription? @relation("LinkCreationSubscription", fields: [createdUnderSubscriptionId, ownerId], references: [id, userId], onDelete: Restrict)
+
+  clickEvents Click[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, status])
+  @@index([ownerId, createdAt])
+  @@index([status, lastClickedAt])
+  @@index([createdUnderSubscriptionId])
+}
+
+model QrCode {
+  id      String @id @default(cuid())
+  ownerId String
+
+  /// Information d'audit uniquement; les droits utilisent la souscription courante.
+  createdUnderSubscriptionId String
+
+  slug           String         @unique @db.VarChar(64)
+  name           String         @db.VarChar(180)
+  destinationUrl String         @db.Text
+  styleOptions   Json
+  logoUrl        String?        @db.Text
+  status         ResourceStatus @default(ACTIVE)
+
+  clickCount    Int       @default(0)
+  lastClickedAt DateTime?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  creationSubscription Subscription @relation("QrCreationSubscription", fields: [createdUnderSubscriptionId, ownerId], references: [id, userId], onDelete: Restrict)
+
+  clickEvents Click[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, status])
+  @@index([ownerId, createdAt])
+  @@index([status, lastClickedAt])
+  @@index([createdUnderSubscriptionId])
+}
+
+model Click {
+  id       String  @id @default(cuid())
+  linkId   String?
+  qrCodeId String?
+
+  occurredAt  DateTime @default(now())
+  visitorHash String?  @db.VarChar(64)
+
+  countryCode  String? @db.VarChar(2)
+  city         String? @db.VarChar(120)
+  deviceType   String? @db.VarChar(50)
+  browser      String? @db.VarChar(80)
+  referrerHost String? @db.VarChar(255)
+  isBot        Boolean @default(false)
+
+  link   Link?   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  qrCode QrCode? @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+
+  @@index([linkId, occurredAt])
+  @@index([qrCodeId, occurredAt])
+  @@index([linkId, visitorHash, occurredAt])
+  @@index([qrCodeId, visitorHash, occurredAt])
+  @@index([occurredAt, isBot])
+}
+
+model AuditLog {
+  id          String  @id @default(cuid())
+  actorUserId String?
+
+  action       String @db.VarChar(120)
+  resourceType String @db.VarChar(80)
+  resourceId   String @db.VarChar(191)
+  metadata     Json?
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([resourceType, resourceId, createdAt])
+  @@index([action, createdAt])
+}

@@ -42,7 +42,7 @@ export function HistoryPanel({
       </div>
 
       {history.length === 0 ? (
-        <p className="empty-state">Aucun lien pour le moment. Creez un lien ou un QR code pour remplir l'historique.</p>
+        <p className="empty-state">Aucun lien pour le moment. Créez un lien ou un QR code pour remplir l&apos;historique.</p>
       ) : (
         <div className="history-list">
           {history.map((item) => (

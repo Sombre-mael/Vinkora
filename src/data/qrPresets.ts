@@ -57,7 +57,7 @@ export const qrPresets: QrPreset[] = [
   },
   {
     id: 'social',
-    name: 'Reseaux sociaux',
+    name: 'Réseaux sociaux',
     description: 'Couleurs fortes pour partage digital.',
     options: {
       foreground: '#be185d',
@@ -73,7 +73,7 @@ export const qrPresets: QrPreset[] = [
   },
   {
     id: 'event',
-    name: 'Evenement',
+    name: 'Événement',
     description: 'Contraste eleve pour affiches et badges.',
     options: {
       foreground: '#312e81',
@@ -90,7 +90,7 @@ export const qrPresets: QrPreset[] = [
   {
     id: 'minimal',
     name: 'Minimal',
-    description: 'Sobre, clair, pret a imprimer.',
+    description: 'Sobre, clair, prêt à imprimer.',
     options: {
       foreground: '#18181b',
       background: '#fafafa',
