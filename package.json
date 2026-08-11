@@ -19,7 +19,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint .",
-    "test": "tsx --test tests/security-phase1.test.ts tests/link-transition.test.ts tests/plans-catalog.test.ts",
+    "test": "tsx --test tests/security-phase1.test.ts tests/link-transition.test.ts tests/plans-catalog.test.ts tests/pwa-update.test.ts",
     "test:security": "tsx --test tests/security-phase1.test.ts",
     "typecheck": "tsc --noEmit"
   },

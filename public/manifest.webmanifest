@@ -1,6 +1,8 @@
 {
+  "id": "/",
   "name": "Vinkora",
   "short_name": "Vinkora",
+  "lang": "fr",
   "description": "Vinkora permet de raccourcir vos liens et de créer des QR codes personnalisés, prêts à être partagés.",
   "start_url": "/",
   "scope": "/",
@@ -28,7 +30,7 @@
       "name": "Créer un QR code",
       "short_name": "QR code",
       "description": "Ouvrir Vinkora pour générer un QR code.",
-      "url": "/",
+      "url": "/studio",
       "icons": [
         {
           "src": "/icons/icon-192.png",
