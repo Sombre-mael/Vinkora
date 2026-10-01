@@ -19,6 +19,7 @@ export function PublicFooter() {
         <div>
           <strong>Ressources</strong>
           <Link href="/faq">Questions fréquentes</Link>
+          <Link href="/privacy">Confidentialité</Link>
           <Link href="/dashboard">Aperçu du dashboard</Link>
         </div>
         <div>

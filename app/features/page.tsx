@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { PublicPage } from '@/components/saas/PublicPage'
+import { DynamicQrBetaCallout } from '@/components/saas/DynamicQrBetaCallout'
 
 export const metadata: Metadata = {
   title: 'Fonctionnalités',
@@ -40,9 +41,9 @@ const capabilities = [
     icon: BarChart3,
     title: 'Analytics lisibles',
     description:
-      'Comprenez rapidement quand, où et depuis quel appareil vos liens sont consultés.',
+      'Comprenez rapidement quand, où et depuis quel appareil vos QR dynamiques sont consultés.',
     points: ['Évolution des clics', 'Sources et appareils', 'Liens performants'],
-    availability: 'Bientôt avec Pass Événement ou Starter',
+    availability: 'Disponible pour les QR dynamiques en bêta',
   },
 ]
 
@@ -72,6 +73,8 @@ export default function FeaturesPage() {
           </Link>
         </div>
       </section>
+
+      <DynamicQrBetaCallout />
 
       <section className="capabilities public-section">
         <div className="public-container">

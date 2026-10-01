@@ -519,6 +519,91 @@
   padding-block: 104px;
 }
 
+.dynamic-beta-band {
+  border-block: 1px solid rgba(91, 92, 226, 0.18);
+  background: #f3f5ff;
+}
+
+.dynamic-beta-band__inner {
+  display: grid;
+  min-height: 190px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 28px;
+  padding-block: 32px;
+}
+
+.dynamic-beta-band__symbol {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--saas-ink);
+  color: var(--saas-teal);
+}
+
+.dynamic-beta-band__symbol svg {
+  width: 27px;
+  height: 27px;
+}
+
+.dynamic-beta-band__copy > span {
+  color: var(--saas-indigo-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.dynamic-beta-band__copy h2 {
+  margin: 6px 0 0;
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 1.15;
+}
+
+.dynamic-beta-band__copy p {
+  max-width: 690px;
+  margin: 8px 0 0;
+  color: var(--saas-muted);
+  line-height: 1.6;
+}
+
+.dynamic-beta-band__facts {
+  display: grid;
+  gap: 8px;
+  color: var(--saas-ink-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dynamic-beta-band__facts span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dynamic-beta-band__facts svg,
+.dynamic-beta-band .button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.dynamic-beta-band__pending {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(91, 92, 226, 0.22);
+  border-radius: 7px;
+  background: var(--saas-white);
+  color: var(--saas-indigo-dark);
+  padding: 9px 15px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .public-section__heading {
   max-width: 660px;
   margin-bottom: 48px;
@@ -3612,6 +3697,16 @@
   .hero-tool__result-copy { text-align: center; }
   .hero-tool__result-copy > div { justify-content: center; }
   .public-section { padding-block: 72px; }
+  .dynamic-beta-band__inner {
+    min-height: 0;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 18px 14px;
+    padding-block: 28px;
+  }
+  .dynamic-beta-band__symbol { width: 48px; height: 48px; }
+  .dynamic-beta-band__facts { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+  .dynamic-beta-band .button,
+  .dynamic-beta-band__pending { grid-column: 1 / -1; width: 100%; }
   .public-section__heading h2,
   .pricing-teaser h2,
   .public-page-hero h1 { font-size: clamp(2rem, 9vw, 3rem); }

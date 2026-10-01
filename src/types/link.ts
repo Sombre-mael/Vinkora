@@ -59,4 +59,10 @@ export type ShortenedLink = {
   createdAt: string
   favorite: boolean
   qrOptions: QrOptions
+  kind?: 'static' | 'dynamic'
+  name?: string
+  dynamicQrId?: string
+  dynamicSlug?: string
+  editToken?: string
+  manageUrl?: string
 }

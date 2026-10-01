@@ -14,6 +14,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { DashboardPreview } from '@/components/saas/DashboardPreview'
+import { DynamicQrBetaCallout } from '@/components/saas/DynamicQrBetaCallout'
 import { PublicFooter } from '@/components/saas/PublicFooter'
 import { PublicNav } from '@/components/saas/PublicNav'
 import { PublicUrlTool } from '@/components/saas/PublicUrlTool'
@@ -97,6 +98,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <DynamicQrBetaCallout />
 
         <section className="product-preview public-section">
           <div className="public-container">

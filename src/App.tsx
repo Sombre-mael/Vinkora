@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import {
   Clock3,
@@ -11,7 +11,7 @@ import {
   Link2,
   Palette,
   QrCode,
-  Scissors,
+  RefreshCw,
   Shapes,
   X,
 } from 'lucide-react'
@@ -27,7 +27,8 @@ import { ResultPanel } from '@/components/ResultPanel'
 import { UrlShortener } from '@/components/UrlShortener'
 import { useLinkHistory } from '@/hooks/useLinkHistory'
 import { useQrCustomization } from '@/hooks/useQrCustomization'
-import { type ShortenMode, useUrlShortener } from '@/hooks/useUrlShortener'
+import { type QrCreationMode, useUrlShortener } from '@/hooks/useUrlShortener'
+import { readDynamicQrStudioTransfer, updateDynamicQr } from '@/services/dynamicQr'
 import type { ShortenedLink } from '@/types/link'
 
 type EditorTool = 'link' | QrEditorTool | 'history'
@@ -65,9 +66,12 @@ const copyToClipboard = async (text: string) => {
   await navigator.clipboard.writeText(text)
 }
 
-function App() {
+function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
   const [url, setUrl] = useState('')
-  const [mode, setMode] = useState<ShortenMode>('qr-only')
+  const [mode, setMode] = useState<QrCreationMode>('static')
+  const [dynamicName, setDynamicName] = useState('')
+  const [dynamicSlug, setDynamicSlug] = useState('')
+  const [savingStyle, setSavingStyle] = useState(false)
   const [copied, setCopied] = useState(false)
   const [activeTool, setActiveTool] = useState<EditorTool>('link')
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false)
@@ -92,12 +96,37 @@ function App() {
   const {
     history,
     addHistoryItem,
+    updateHistoryItem,
     removeHistoryItem,
     toggleFavorite,
     clearHistory,
   } = useLinkHistory()
 
   const qrValue = useMemo(() => result?.outputUrl ?? '', [result])
+
+  useEffect(() => {
+    const transfer = readDynamicQrStudioTransfer()
+    if (!transfer) return
+
+    queueMicrotask(() => {
+      const { qrCode, editToken } = transfer
+      setUrl(qrCode.destinationUrl)
+      setMode('dynamic')
+      setDynamicName(qrCode.name)
+      setDynamicSlug(qrCode.slug)
+      updateQrOptions({ ...qrCode.styleOptions, logoSrc: '', showLogo: false })
+      setManualResult({
+        originalUrl: qrCode.destinationUrl,
+        outputUrl: qrCode.publicUrl,
+        mode: 'dynamic',
+        name: qrCode.name,
+        dynamicQrId: qrCode.id,
+        dynamicSlug: qrCode.slug,
+        editToken,
+        manageUrl: `${window.location.origin}/manage/qr/${qrCode.id}#key=${editToken}`,
+      })
+    })
+  }, [setManualResult, updateQrOptions])
 
   const selectDesktopTool = (tool: Exclude<EditorTool, 'export'>) => {
     setActiveTool(tool)
@@ -113,11 +142,25 @@ function App() {
 
   const handleSubmit = async () => {
     try {
-      const nextResult = await submitUrl(url, mode)
-      addHistoryItem(nextResult.originalUrl, nextResult.outputUrl, qrOptions)
+      const nextResult = await submitUrl(url, mode, {
+        name: dynamicName,
+        slug: dynamicSlug,
+        qrOptions,
+      })
+      addHistoryItem({
+        originalUrl: nextResult.originalUrl,
+        shortUrl: nextResult.outputUrl,
+        qrOptions,
+        kind: nextResult.mode,
+        name: nextResult.name,
+        dynamicQrId: nextResult.dynamicQrId,
+        dynamicSlug: nextResult.dynamicSlug,
+        editToken: nextResult.editToken,
+        manageUrl: nextResult.manageUrl,
+      })
       setActiveTool('link')
       setMobilePanelOpen(false)
-      toast.success(mode === 'shorten' ? 'Lien raccourci avec succès.' : 'QR code généré.')
+      toast.success(mode === 'dynamic' ? 'QR dynamique créé.' : 'QR statique généré.')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Une erreur est survenue.'
       toast.error(message)
@@ -126,6 +169,8 @@ function App() {
 
   const handleResetInput = () => {
     setUrl('')
+    setDynamicName('')
+    setDynamicSlug('')
     setCopied(false)
     resetResult()
   }
@@ -149,12 +194,19 @@ function App() {
 
   const handleSelectHistory = (item: ShortenedLink) => {
     setUrl(item.originalUrl)
-    setMode(item.originalUrl === item.shortUrl ? 'qr-only' : 'shorten')
+    setMode(item.kind === 'dynamic' ? 'dynamic' : 'static')
+    setDynamicName(item.name ?? '')
+    setDynamicSlug(item.dynamicSlug ?? '')
     updateQrOptions(item.qrOptions)
     setManualResult({
       originalUrl: item.originalUrl,
       outputUrl: item.shortUrl,
-      mode: item.originalUrl === item.shortUrl ? 'qr-only' : 'shorten',
+      mode: item.kind === 'dynamic' ? 'dynamic' : 'static',
+      name: item.name,
+      dynamicQrId: item.dynamicQrId,
+      dynamicSlug: item.dynamicSlug,
+      editToken: item.editToken,
+      manageUrl: item.manageUrl,
     })
     setActiveTool('link')
     setMobilePanelOpen(false)
@@ -163,6 +215,21 @@ function App() {
 
   const downloadPng = () => qrStudioRef.current?.downloadPng()
   const downloadSvg = () => qrStudioRef.current?.downloadSvg()
+
+  const saveDynamicStyle = async () => {
+    if (!result?.dynamicQrId || !result.editToken) return
+    setSavingStyle(true)
+    try {
+      await updateDynamicQr(result.dynamicQrId, result.editToken, { styleOptions: qrOptions })
+      const item = history.find((entry) => entry.dynamicQrId === result.dynamicQrId)
+      if (item) updateHistoryItem(item.id, { qrOptions })
+      toast.success('Style dynamique enregistré sans le logo local.')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Impossible d’enregistrer le style.')
+    } finally {
+      setSavingStyle(false)
+    }
+  }
 
   return (
     <div className="editor-shell">
@@ -272,20 +339,20 @@ function App() {
             <div className="mobile-mode-switch" aria-label="Mode de génération">
               <button
                 type="button"
-                className={mode === 'shorten' ? 'is-active' : ''}
-                disabled
-                aria-label="Lien court payant, bientôt disponible"
-                title="Lien court payant, bientôt disponible"
+                className={mode === 'static' ? 'is-active' : ''}
+                onClick={() => setMode('static')}
+                aria-label="Créer un QR statique"
               >
-                <Scissors aria-hidden="true" />
+                <QrCode aria-hidden="true" />
               </button>
               <button
                 type="button"
-                className={mode === 'qr-only' ? 'is-active' : ''}
-                onClick={() => setMode('qr-only')}
-                aria-label="Générer le QR sans raccourcir"
+                className={mode === 'dynamic' ? 'is-active' : ''}
+                onClick={() => setMode('dynamic')}
+                disabled={!dynamicBetaEnabled && mode !== 'dynamic'}
+                aria-label="Créer un QR dynamique bêta"
               >
-                <QrCode aria-hidden="true" />
+                <RefreshCw aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -309,11 +376,39 @@ function App() {
                 </button>
               ) : null}
             </div>
-            <button type="button" onClick={handleSubmit} disabled={isLoading || mode === 'shorten'}>
-              {isLoading ? 'Patientez…' : mode === 'shorten' ? 'Bientôt' : 'Créer'}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isLoading || (mode === 'dynamic' && !dynamicBetaEnabled)}
+            >
+              {isLoading ? 'Patientez…' : mode === 'dynamic' && !dynamicBetaEnabled ? 'Fermée' : 'Créer'}
             </button>
           </div>
-          <p className="mobile-feature-note">QR statique gratuit. Lien court payant bientôt disponible.</p>
+          {mode === 'dynamic' ? (
+            <div className="mobile-dynamic-fields">
+              <input
+                value={dynamicName}
+                maxLength={180}
+                onChange={(event) => setDynamicName(event.target.value)}
+                placeholder="Nom facultatif"
+                aria-label="Nom du QR dynamique"
+              />
+              <input
+                value={dynamicSlug}
+                maxLength={40}
+                onChange={(event) => setDynamicSlug(event.target.value)}
+                placeholder="Slug facultatif"
+                aria-label="Slug du QR dynamique"
+              />
+            </div>
+          ) : null}
+          <p className="mobile-feature-note">
+            {mode === 'dynamic'
+              ? dynamicBetaEnabled
+                ? 'Bêta gratuite hors forfait · 3 QR par appareil.'
+                : 'Les nouvelles créations sont temporairement fermées.'
+              : 'QR statique gratuit et local.'}
+          </p>
           {error ? <p className="mobile-inline-error">{error}</p> : null}
         </section>
       ) : null}
@@ -345,14 +440,25 @@ function App() {
                 <UrlShortener
                   url={url}
                   mode={mode}
+                  dynamicName={dynamicName}
+                  dynamicSlug={dynamicSlug}
+                  dynamicCreationEnabled={dynamicBetaEnabled}
                   error={error}
                   isLoading={isLoading}
                   onUrlChange={setUrl}
                   onModeChange={setMode}
+                  onDynamicNameChange={setDynamicName}
+                  onDynamicSlugChange={setDynamicSlug}
                   onSubmit={handleSubmit}
                   onReset={handleResetInput}
                 />
-                <ResultPanel result={result} copied={copied} onCopy={() => handleCopy()} />
+                <ResultPanel
+                  result={result}
+                  copied={copied}
+                  onCopy={() => handleCopy()}
+                  onSaveStyle={result?.mode === 'dynamic' ? saveDynamicStyle : undefined}
+                  savingStyle={savingStyle}
+                />
               </div>
             ) : (
               <QrStudioControls

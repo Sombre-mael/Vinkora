@@ -4,6 +4,7 @@ import { PwaRegistration } from '@/components/PwaRegistration'
 import '@/index.css'
 import '@/App.css'
 import './saas.css'
+import './dynamic-qr.css'
 
 export const metadata: Metadata = {
   title: {

@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function StudioPage() {
-  return <App />
+  return <App dynamicBetaEnabled={process.env.DYNAMIC_QR_BETA_ENABLED === 'true'} />
 }

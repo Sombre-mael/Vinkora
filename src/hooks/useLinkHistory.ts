@@ -27,7 +27,11 @@ const readHistory = () => {
       window.localStorage.removeItem(LEGACY_STORAGE_KEY)
     }
 
-    return raw ? (JSON.parse(raw) as ShortenedLink[]) : []
+    const parsed = raw ? (JSON.parse(raw) as ShortenedLink[]) : []
+    return parsed.map((item) => ({
+      ...item,
+      kind: item.kind ?? (item.dynamicQrId ? 'dynamic' : 'static'),
+    }))
   } catch {
     return []
   }
@@ -40,20 +44,42 @@ export const useLinkHistory = () => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, 30)))
   }, [history])
 
-  const addHistoryItem = (originalUrl: string, shortUrl: string, qrOptions: QrOptions) => {
+  const addHistoryItem = (input: {
+    originalUrl: string
+    shortUrl: string
+    qrOptions: QrOptions
+    kind: 'static' | 'dynamic'
+    name?: string
+    dynamicQrId?: string
+    dynamicSlug?: string
+    editToken?: string
+    manageUrl?: string
+  }) => {
     setHistory((current) => {
       const nextItem: ShortenedLink = {
         id: createId(),
-        originalUrl,
-        shortUrl,
+        originalUrl: input.originalUrl,
+        shortUrl: input.shortUrl,
         createdAt: new Date().toISOString(),
         favorite: false,
-        qrOptions,
+        qrOptions: input.qrOptions,
+        kind: input.kind,
+        name: input.name,
+        dynamicQrId: input.dynamicQrId,
+        dynamicSlug: input.dynamicSlug,
+        editToken: input.editToken,
+        manageUrl: input.manageUrl,
       }
 
-      const deduped = current.filter((item) => item.shortUrl !== shortUrl)
+      const deduped = current.filter((item) => item.shortUrl !== input.shortUrl)
       return [nextItem, ...deduped].slice(0, 30)
     })
+  }
+
+  const updateHistoryItem = (id: string, updates: Partial<ShortenedLink>) => {
+    setHistory((current) => current.map((item) => (
+      item.id === id ? { ...item, ...updates } : item
+    )))
   }
 
   const removeHistoryItem = (id: string) => {
@@ -77,6 +103,7 @@ export const useLinkHistory = () => {
   return {
     history: sortedHistory,
     addHistoryItem,
+    updateHistoryItem,
     removeHistoryItem,
     toggleFavorite,
     clearHistory,

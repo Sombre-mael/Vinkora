@@ -67,6 +67,11 @@ enum LinkOwnership {
   LEGACY_ANONYMOUS
 }
 
+enum QrOwnership {
+  USER_OWNED
+  ANONYMOUS_BETA
+}
+
 enum PostGraceBehavior {
   KEEP_REDIRECTING
   SHOW_EXPIRED_PAGE
@@ -284,11 +289,16 @@ model Link {
 }
 
 model QrCode {
-  id      String @id @default(cuid())
-  ownerId String
+  id      String  @id @default(cuid())
+  ownerId String?
 
   /// Information d'audit uniquement; les droits utilisent la souscription courante.
-  createdUnderSubscriptionId String
+  createdUnderSubscriptionId String?
+
+  ownership           QrOwnership @default(USER_OWNED)
+  anonymousDeviceHash String?     @db.VarChar(64)
+  editTokenHash       String?     @unique @db.VarChar(64)
+  creationIpHash      String?     @db.VarChar(64)
 
   slug           String         @unique @db.VarChar(64)
   name           String         @db.VarChar(180)
@@ -300,9 +310,9 @@ model QrCode {
   clickCount    Int       @default(0)
   lastClickedAt DateTime?
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: Restrict)
 
-  creationSubscription Subscription @relation("QrCreationSubscription", fields: [createdUnderSubscriptionId, ownerId], references: [id, userId], onDelete: Restrict)
+  creationSubscription Subscription? @relation("QrCreationSubscription", fields: [createdUnderSubscriptionId, ownerId], references: [id, userId], onDelete: Restrict)
 
   clickEvents Click[]
 
@@ -313,6 +323,8 @@ model QrCode {
   @@index([ownerId, createdAt])
   @@index([status, lastClickedAt])
   @@index([createdUnderSubscriptionId])
+  @@index([anonymousDeviceHash, status])
+  @@index([creationIpHash, createdAt])
 }
 
 model Click {

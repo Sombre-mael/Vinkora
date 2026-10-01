@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { CircleGauge, Info, RefreshCw } from 'lucide-react'
 import { PlanCard } from '@/components/saas/PlanCard'
+import { DynamicQrBetaCallout } from '@/components/saas/DynamicQrBetaCallout'
 import { PublicPage } from '@/components/saas/PublicPage'
 import {
   catalogPriceNotice,
@@ -27,6 +28,8 @@ export default function PricingPage() {
           </p>
         </div>
       </section>
+
+      <DynamicQrBetaCallout />
 
       <section className="pricing-page public-section">
         <div className="public-container">

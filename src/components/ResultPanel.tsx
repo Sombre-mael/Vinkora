@@ -1,13 +1,15 @@
-import { Check, Copy, ExternalLink } from 'lucide-react'
+import { Check, Copy, ExternalLink, KeyRound, Save } from 'lucide-react'
 import type { ShortenResult } from '@/hooks/useUrlShortener'
 
 type ResultPanelProps = {
   result: ShortenResult | null
   copied: boolean
   onCopy: () => void
+  onSaveStyle?: () => void
+  savingStyle?: boolean
 }
 
-export function ResultPanel({ result, copied, onCopy }: ResultPanelProps) {
+export function ResultPanel({ result, copied, onCopy, onSaveStyle, savingStyle }: ResultPanelProps) {
   if (!result) {
     return (
       <section className="tool-panel muted-panel">
@@ -20,14 +22,15 @@ export function ResultPanel({ result, copied, onCopy }: ResultPanelProps) {
     )
   }
 
-  const label = result.mode === 'shorten' ? 'Lien raccourci' : 'Lien original'
+  const isDynamic = result.mode === 'dynamic'
+  const label = isDynamic ? 'Adresse dynamique' : 'Lien original'
 
   return (
     <section className="tool-panel result-panel">
       <div className="section-heading">
         <div>
           <p className="eyebrow">{label}</p>
-          <h2>{result.mode === 'shorten' ? 'Prêt à partager' : 'QR code prêt sans raccourcissement'}</h2>
+          <h2>{isDynamic ? 'QR modifiable prêt' : 'QR statique prêt'}</h2>
         </div>
         <Check className="panel-icon success" aria-hidden="true" />
       </div>
@@ -41,6 +44,26 @@ export function ResultPanel({ result, copied, onCopy }: ResultPanelProps) {
         {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
         {copied ? 'Copié' : 'Copier'}
       </button>
+
+      {isDynamic && result.manageUrl ? (
+        <div className="dynamic-result-actions">
+          <a className="secondary-action" href={result.manageUrl}>
+            <KeyRound aria-hidden="true" /> Gérer et voir les statistiques
+          </a>
+          {onSaveStyle ? (
+            <button className="secondary-action" type="button" onClick={onSaveStyle} disabled={savingStyle}>
+              <Save aria-hidden="true" /> {savingStyle ? 'Enregistrement…' : 'Enregistrer le style'}
+            </button>
+          ) : null}
+          {result.editToken ? (
+            <details className="dynamic-edit-key">
+              <summary>Afficher la clé secrète d’édition</summary>
+              <code>{result.editToken}</code>
+            </details>
+          ) : null}
+          <p>Conservez le lien de gestion : Vinkora ne peut pas récupérer votre clé secrète.</p>
+        </div>
+      ) : null}
     </section>
   )
 }
