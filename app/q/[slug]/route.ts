@@ -19,11 +19,11 @@ export async function GET(request: NextRequest, context: DynamicQrRouteContext) 
   const qrCode = await resolveDynamicQrRedirect(prisma, slug)
 
   if (!qrCode) {
-    return rewriteToStatus(request, 'unknown', 404)
+    return redirectToStatus(request, 'unknown')
   }
 
   if (qrCode.status !== 'ACTIVE') {
-    return rewriteToStatus(request, qrCode.status === 'ARCHIVED' ? 'archived' : 'suspended', 410)
+    return redirectToStatus(request, qrCode.status === 'ARCHIVED' ? 'archived' : 'suspended')
   }
 
   const metadata = buildDynamicQrScanMetadata(request.headers, qrCode.id)
@@ -31,8 +31,8 @@ export async function GET(request: NextRequest, context: DynamicQrRouteContext) 
   return NextResponse.redirect(qrCode.destinationUrl, 302)
 }
 
-function rewriteToStatus(request: NextRequest, reason: 'unknown' | 'archived' | 'suspended', status: number) {
+function redirectToStatus(request: NextRequest, reason: 'unknown' | 'archived' | 'suspended') {
   const statusUrl = new URL('/q/status', request.url)
   statusUrl.searchParams.set('reason', reason)
-  return NextResponse.rewrite(statusUrl, { status })
+  return NextResponse.redirect(statusUrl, 302)
 }
