@@ -49,21 +49,23 @@ export function PlanCard({ plan, compact = false, context = 'public' }: PlanCard
         <PlanPrice plan={plan} />
         <p>{plan.summary}</p>
       </div>
-      <div className="catalog-plan__duration">
-        <Clock3 size={16} aria-hidden="true" />
-        <span>Durée</span>
-        <strong>{plan.duration.label}</strong>
-      </div>
-      <div className="catalog-plan__quotas">
-        <div>
-          <span>Ressources dynamiques</span>
-          <strong>{numberFormatter.format(plan.quotas.dynamicResourcesPerPeriod)}</strong>
-          <small>par période</small>
+      <div className="catalog-plan__metrics">
+        <div className="catalog-plan__duration">
+          <Clock3 size={16} aria-hidden="true" />
+          <span>Durée</span>
+          <strong>{plan.duration.label}</strong>
         </div>
-        <div>
-          <span>Clics ou scans analysés</span>
-          <strong>{numberFormatter.format(plan.quotas.analyzedEventsPerPeriod)}</strong>
-          <small>par période</small>
+        <div className="catalog-plan__quotas">
+          <div>
+            <span>Ressources dynamiques</span>
+            <strong>{numberFormatter.format(plan.quotas.dynamicResourcesPerPeriod)}</strong>
+            <small>par période</small>
+          </div>
+          <div>
+            <span>Clics ou scans analysés</span>
+            <strong>{numberFormatter.format(plan.quotas.analyzedEventsPerPeriod)}</strong>
+            <small>par période</small>
+          </div>
         </div>
       </div>
       <ul className="catalog-plan__features">

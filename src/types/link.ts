@@ -1,3 +1,5 @@
+import type { DynamicQrCampaignChannel } from '@/config/dynamicQrCampaigns'
+
 export type ShortenerProviderId = 'vinkora'
 
 export type ShortenerProvider = {
@@ -61,6 +63,7 @@ export type ShortenedLink = {
   qrOptions: QrOptions
   kind?: 'static' | 'dynamic'
   name?: string
+  campaignChannel?: DynamicQrCampaignChannel
   dynamicQrId?: string
   dynamicSlug?: string
   editToken?: string

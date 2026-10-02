@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   Clock3,
   Download,
-  ExternalLink,
   ImageIcon,
   LayoutGrid,
   Link2,
@@ -25,6 +25,10 @@ import {
 } from '@/components/QrStudio'
 import { ResultPanel } from '@/components/ResultPanel'
 import { UrlShortener } from '@/components/UrlShortener'
+import {
+  DYNAMIC_QR_CHANNELS,
+  type DynamicQrCampaignChannel,
+} from '@/config/dynamicQrCampaigns'
 import { useLinkHistory } from '@/hooks/useLinkHistory'
 import { useQrCustomization } from '@/hooks/useQrCustomization'
 import { type QrCreationMode, useUrlShortener } from '@/hooks/useUrlShortener'
@@ -34,28 +38,23 @@ import type { ShortenedLink } from '@/types/link'
 type EditorTool = 'link' | QrEditorTool | 'history'
 
 const desktopTools: Array<{
-  id: Exclude<EditorTool, 'export'>
+  id: 'link' | 'templates' | 'history'
   label: string
   icon: typeof Link2
 }> = [
-  { id: 'link', label: 'Lien', icon: Link2 },
+  { id: 'link', label: 'QR Code', icon: QrCode },
   { id: 'templates', label: 'Modèles', icon: LayoutGrid },
-  { id: 'colors', label: 'Couleurs', icon: Palette },
-  { id: 'shape', label: 'Forme', icon: Shapes },
-  { id: 'logo', label: 'Logo', icon: ImageIcon },
   { id: 'history', label: 'Historique', icon: Clock3 },
 ]
 
-const mobileTools: Array<{
+const appearanceTools: Array<{
   id: QrEditorTool
   label: string
   icon: typeof Link2
 }> = [
-  { id: 'templates', label: 'Modèles', icon: LayoutGrid },
   { id: 'colors', label: 'Couleurs', icon: Palette },
-  { id: 'shape', label: 'Style', icon: Shapes },
   { id: 'logo', label: 'Logo', icon: ImageIcon },
-  { id: 'export', label: 'Exporter', icon: Download },
+  { id: 'shape', label: 'Style', icon: Shapes },
 ]
 
 const copyToClipboard = async (text: string) => {
@@ -71,6 +70,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
   const [mode, setMode] = useState<QrCreationMode>('static')
   const [dynamicName, setDynamicName] = useState('')
   const [dynamicSlug, setDynamicSlug] = useState('')
+  const [dynamicCampaignChannel, setDynamicCampaignChannel] = useState<DynamicQrCampaignChannel>('UNSPECIFIED')
   const [savingStyle, setSavingStyle] = useState(false)
   const [copied, setCopied] = useState(false)
   const [activeTool, setActiveTool] = useState<EditorTool>('link')
@@ -103,6 +103,14 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
   } = useLinkHistory()
 
   const qrValue = useMemo(() => result?.outputUrl ?? '', [result])
+  const appearanceTool: QrEditorTool =
+    activeTool === 'templates' ||
+    activeTool === 'colors' ||
+    activeTool === 'shape' ||
+    activeTool === 'logo' ||
+    activeTool === 'export'
+      ? activeTool
+      : 'colors'
 
   useEffect(() => {
     const transfer = readDynamicQrStudioTransfer()
@@ -114,12 +122,14 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
       setMode('dynamic')
       setDynamicName(qrCode.name)
       setDynamicSlug(qrCode.slug)
+      setDynamicCampaignChannel(qrCode.campaignChannel)
       updateQrOptions({ ...qrCode.styleOptions, logoSrc: '', showLogo: false })
       setManualResult({
         originalUrl: qrCode.destinationUrl,
         outputUrl: qrCode.publicUrl,
         mode: 'dynamic',
         name: qrCode.name,
+        campaignChannel: qrCode.campaignChannel,
         dynamicQrId: qrCode.id,
         dynamicSlug: qrCode.slug,
         editToken,
@@ -128,7 +138,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
     })
   }, [setManualResult, updateQrOptions])
 
-  const selectDesktopTool = (tool: Exclude<EditorTool, 'export'>) => {
+  const selectDesktopTool = (tool: EditorTool) => {
     setActiveTool(tool)
     setMobilePanelOpen(false)
     workspaceRef.current?.scrollTo({ top: 0 })
@@ -145,6 +155,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
       const nextResult = await submitUrl(url, mode, {
         name: dynamicName,
         slug: dynamicSlug,
+        campaignChannel: dynamicCampaignChannel,
         qrOptions,
       })
       addHistoryItem({
@@ -153,6 +164,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
         qrOptions,
         kind: nextResult.mode,
         name: nextResult.name,
+        campaignChannel: nextResult.campaignChannel,
         dynamicQrId: nextResult.dynamicQrId,
         dynamicSlug: nextResult.dynamicSlug,
         editToken: nextResult.editToken,
@@ -171,6 +183,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
     setUrl('')
     setDynamicName('')
     setDynamicSlug('')
+    setDynamicCampaignChannel('UNSPECIFIED')
     setCopied(false)
     resetResult()
   }
@@ -197,12 +210,14 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
     setMode(item.kind === 'dynamic' ? 'dynamic' : 'static')
     setDynamicName(item.name ?? '')
     setDynamicSlug(item.dynamicSlug ?? '')
+    setDynamicCampaignChannel(item.campaignChannel ?? 'UNSPECIFIED')
     updateQrOptions(item.qrOptions)
     setManualResult({
       originalUrl: item.originalUrl,
       outputUrl: item.shortUrl,
       mode: item.kind === 'dynamic' ? 'dynamic' : 'static',
       name: item.name,
+      campaignChannel: item.campaignChannel,
       dynamicQrId: item.dynamicQrId,
       dynamicSlug: item.dynamicSlug,
       editToken: item.editToken,
@@ -232,43 +247,35 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
   }
 
   return (
-    <div className="editor-shell">
+    <div className={`editor-shell vinkora-studio mode-${mode}`}>
       <header className="editor-header">
-        <div className="header-brand">
+        <Link className="header-brand" href="/" aria-label="Retour à l’accueil Vinkora">
           <Image
-            className="desktop-brand-logo"
-            src="/brand/vinkora-logo.png"
-            alt="Vinkora"
-            width={1580}
-            height={600}
-            priority
-          />
-          <Image
-            className="mobile-brand-logo"
+            className="brand-logo"
             src="/brand/vinkora-logo-dark.png"
             alt="Vinkora"
             width={1580}
             height={600}
             priority
           />
-        </div>
+        </Link>
 
-        <div className="document-title">
-          <span>Nouveau QR code</span>
-          <small>Créez. Partagez. Mesurez.</small>
+        <div className="studio-header-title">
+          <span>Studio QR</span>
+          <small>{mode === 'dynamic' ? 'Campagne dynamique' : 'Création statique'}</small>
         </div>
 
         <button
           className="mobile-history-button"
           type="button"
           onClick={() => {
-            setActiveTool('history')
+            setActiveTool(activeTool === 'history' ? 'link' : 'history')
             setMobilePanelOpen(false)
             workspaceRef.current?.scrollTo({ top: 0 })
           }}
-          aria-label="Ouvrir l’historique"
+          aria-label={activeTool === 'history' ? 'Revenir à la création' : 'Ouvrir l’historique'}
         >
-          <Clock3 aria-hidden="true" />
+          {activeTool === 'history' ? <QrCode aria-hidden="true" /> : <Clock3 aria-hidden="true" />}
         </button>
 
         <div className="header-export">
@@ -307,11 +314,14 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
         <nav aria-label="Outils de l’éditeur">
           {desktopTools.map((tool) => {
             const Icon = tool.icon
+            const isActive = tool.id === 'link'
+              ? activeTool !== 'templates' && activeTool !== 'history'
+              : activeTool === tool.id
             return (
               <button
                 key={tool.id}
                 type="button"
-                className={activeTool === tool.id ? 'is-active' : ''}
+                className={isActive ? 'is-active' : ''}
                 onClick={() => selectDesktopTool(tool.id)}
               >
                 <Icon aria-hidden="true" />
@@ -320,44 +330,38 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
             )
           })}
         </nav>
-
-        <a
-          className="sidebar-profile"
-          href="https://github.com/Sombre-mael"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <ExternalLink aria-hidden="true" />
-          <span>Créateur</span>
-        </a>
       </aside>
 
       {activeTool !== 'history' ? (
         <section className="mobile-link-panel" aria-label="Créer un QR code">
           <div className="mobile-link-heading">
-            <span>Votre lien</span>
-            <div className="mobile-mode-switch" aria-label="Mode de génération">
-              <button
-                type="button"
-                className={mode === 'static' ? 'is-active' : ''}
-                onClick={() => setMode('static')}
-                aria-label="Créer un QR statique"
-              >
-                <QrCode aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className={mode === 'dynamic' ? 'is-active' : ''}
-                onClick={() => setMode('dynamic')}
-                disabled={!dynamicBetaEnabled && mode !== 'dynamic'}
-                aria-label="Créer un QR dynamique bêta"
-              >
-                <RefreshCw aria-hidden="true" />
-              </button>
+            <div>
+              <small>Nouveau QR</small>
+              <strong>Destination</strong>
             </div>
+            <span>{mode === 'dynamic' ? 'Dynamique · Bêta' : 'Statique · Local'}</span>
+          </div>
+          <div className="mobile-mode-switch" aria-label="Mode de génération">
+            <button
+              type="button"
+              className={mode === 'static' ? 'is-active' : ''}
+              onClick={() => setMode('static')}
+            >
+              <QrCode aria-hidden="true" />
+              <span>QR statique</span>
+            </button>
+            <button
+              type="button"
+              className={mode === 'dynamic' ? 'is-active' : ''}
+              onClick={() => setMode('dynamic')}
+            >
+              <RefreshCw aria-hidden="true" />
+              <span>QR dynamique</span>
+            </button>
           </div>
           <div className="mobile-link-form">
             <div className="mobile-url-input">
+              <Link2 aria-hidden="true" />
               <input
                 type="url"
                 value={url}
@@ -381,25 +385,40 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
               onClick={handleSubmit}
               disabled={isLoading || (mode === 'dynamic' && !dynamicBetaEnabled)}
             >
-              {isLoading ? 'Patientez…' : mode === 'dynamic' && !dynamicBetaEnabled ? 'Fermée' : 'Créer'}
+              {isLoading ? 'Patientez…' : mode === 'dynamic' && !dynamicBetaEnabled ? 'Fermée' : 'Générer'}
             </button>
           </div>
           {mode === 'dynamic' ? (
             <div className="mobile-dynamic-fields">
-              <input
-                value={dynamicName}
-                maxLength={180}
-                onChange={(event) => setDynamicName(event.target.value)}
-                placeholder="Nom facultatif"
-                aria-label="Nom du QR dynamique"
-              />
-              <input
-                value={dynamicSlug}
-                maxLength={40}
-                onChange={(event) => setDynamicSlug(event.target.value)}
-                placeholder="Slug facultatif"
-                aria-label="Slug du QR dynamique"
-              />
+              <label>
+                <span>Campagne</span>
+                <input
+                  value={dynamicName}
+                  maxLength={180}
+                  onChange={(event) => setDynamicName(event.target.value)}
+                  placeholder="Menu été, affiche…"
+                />
+              </label>
+              <label>
+                <span>Support</span>
+                <select
+                  value={dynamicCampaignChannel}
+                  onChange={(event) => setDynamicCampaignChannel(event.target.value as DynamicQrCampaignChannel)}
+                >
+                  {DYNAMIC_QR_CHANNELS.map((channel) => (
+                    <option key={channel.id} value={channel.id}>{channel.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="mobile-dynamic-slug">
+                <span>Adresse personnalisée</span>
+                <input
+                  value={dynamicSlug}
+                  maxLength={40}
+                  onChange={(event) => setDynamicSlug(event.target.value)}
+                  placeholder="/q/menu-ete"
+                />
+              </label>
             </div>
           ) : null}
           <p className="mobile-feature-note">
@@ -422,26 +441,20 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
         />
       ) : null}
 
-      <div className="editor-workspace" ref={workspaceRef}>
+      <div
+        className={activeTool === 'history' ? 'editor-workspace is-history' : 'editor-workspace'}
+        ref={workspaceRef}
+      >
         {activeTool !== 'history' ? (
-          <aside className={mobilePanelOpen ? 'editor-inspector is-open' : 'editor-inspector'}>
-            <div className="mobile-sheet-handle" aria-hidden="true" />
-            <button
-              className="mobile-panel-close"
-              type="button"
-              onClick={() => setMobilePanelOpen(false)}
-              aria-label="Fermer les réglages"
-            >
-              <X aria-hidden="true" />
-            </button>
-
-            {activeTool === 'link' ? (
+          <>
+            <aside className="desktop-destination-panel" aria-label="Destination du QR code">
               <div className="link-inspector">
                 <UrlShortener
                   url={url}
                   mode={mode}
                   dynamicName={dynamicName}
                   dynamicSlug={dynamicSlug}
+                  dynamicCampaignChannel={dynamicCampaignChannel}
                   dynamicCreationEnabled={dynamicBetaEnabled}
                   error={error}
                   isLoading={isLoading}
@@ -449,6 +462,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
                   onModeChange={setMode}
                   onDynamicNameChange={setDynamicName}
                   onDynamicSlugChange={setDynamicSlug}
+                  onDynamicCampaignChannelChange={setDynamicCampaignChannel}
                   onSubmit={handleSubmit}
                   onReset={handleResetInput}
                 />
@@ -460,21 +474,68 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
                   savingStyle={savingStyle}
                 />
               </div>
-            ) : (
+            </aside>
+
+            <main className="workspace-main">
+              <QrStudioCanvas
+                ref={qrStudioRef}
+                value={qrValue}
+                mode={mode}
+                options={qrOptions}
+                warnings={warnings}
+              />
+            </main>
+
+            <aside className="desktop-appearance-panel" aria-label="Apparence du QR code">
+              <div className="appearance-panel-header">
+                <span>Apparence</span>
+                <div className="appearance-tabs" role="tablist" aria-label="Réglages d’apparence">
+                  {appearanceTools.map((tool) => (
+                    <button
+                      key={tool.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={appearanceTool === tool.id}
+                      className={appearanceTool === tool.id ? 'is-active' : ''}
+                      onClick={() => selectDesktopTool(tool.id)}
+                    >
+                      {tool.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <QrStudioControls
-                tool={activeTool}
+                tool={appearanceTool}
                 options={qrOptions}
                 onChange={updateQrOptions}
                 onReset={resetQrOptions}
                 onDownloadPng={downloadPng}
                 onDownloadSvg={downloadSvg}
               />
-            )}
-          </aside>
-        ) : null}
+            </aside>
 
-        <main className={activeTool === 'history' ? 'workspace-main history-view' : 'workspace-main'}>
-          {activeTool === 'history' ? (
+            <aside className={mobilePanelOpen ? 'editor-inspector is-open' : 'editor-inspector'}>
+              <div className="mobile-sheet-handle" aria-hidden="true" />
+              <button
+                className="mobile-panel-close"
+                type="button"
+                onClick={() => setMobilePanelOpen(false)}
+                aria-label="Fermer les réglages"
+              >
+                <X aria-hidden="true" />
+              </button>
+              <QrStudioControls
+                tool={appearanceTool}
+                options={qrOptions}
+                onChange={updateQrOptions}
+                onReset={resetQrOptions}
+                onDownloadPng={downloadPng}
+                onDownloadSvg={downloadSvg}
+              />
+            </aside>
+          </>
+        ) : (
+          <main className="workspace-main history-view">
             <HistoryPanel
               history={history}
               onSelect={handleSelectHistory}
@@ -483,33 +544,47 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
               onRemove={removeHistoryItem}
               onClear={clearHistory}
             />
-          ) : (
-            <QrStudioCanvas
-              ref={qrStudioRef}
-              value={qrValue}
-              options={qrOptions}
-              warnings={warnings}
-            />
-          )}
-        </main>
+          </main>
+        )}
       </div>
 
-      <nav className="mobile-tool-bar" aria-label="Outils QR">
-        {mobileTools.map((tool) => {
-          const Icon = tool.icon
-          return (
+      {activeTool !== 'history' ? (
+        <section className="mobile-studio-actions" aria-label="Personnalisation et export">
+          <div className="mobile-appearance-actions">
             <button
-              key={tool.id}
               type="button"
-              className={activeTool === tool.id && mobilePanelOpen ? 'is-active' : ''}
-              onClick={() => openMobileTool(tool.id)}
+              className={activeTool === 'templates' && mobilePanelOpen ? 'is-active' : ''}
+              onClick={() => openMobileTool('templates')}
             >
-              <Icon aria-hidden="true" />
-              <span>{tool.label}</span>
+              <LayoutGrid aria-hidden="true" />
+              <span>Modèles</span>
             </button>
-          )
-        })}
-      </nav>
+            {appearanceTools.map((tool) => {
+              const Icon = tool.icon
+              return (
+                <button
+                  key={tool.id}
+                  type="button"
+                  className={activeTool === tool.id && mobilePanelOpen ? 'is-active' : ''}
+                  onClick={() => openMobileTool(tool.id)}
+                >
+                  <Icon aria-hidden="true" />
+                  <span>{tool.label}</span>
+                </button>
+              )
+            })}
+          </div>
+          <button
+            className="mobile-export-action"
+            type="button"
+            disabled={!qrValue}
+            onClick={() => openMobileTool('export')}
+          >
+            <Download aria-hidden="true" />
+            Exporter
+          </button>
+        </section>
+      ) : null}
     </div>
   )
 }

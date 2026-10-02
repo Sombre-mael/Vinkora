@@ -2,6 +2,10 @@ import { createHash, createHmac, randomBytes } from 'node:crypto'
 import { isIP } from 'node:net'
 import { Prisma, type PrismaClient, ResourceStatus } from '@prisma/client'
 import { defaultQrOptions } from '../src/data/qrPresets'
+import {
+  DYNAMIC_QR_CHANNELS,
+  type DynamicQrCampaignChannel,
+} from '../src/config/dynamicQrCampaigns'
 import type {
   DynamicQrAnalytics,
   DynamicQrResource,
@@ -15,6 +19,7 @@ const CREATION_HASH_RETENTION_HOURS = 48
 const MAX_BODY_LENGTH = 16_384
 const MAX_NAME_LENGTH = 180
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{2,38}[a-z0-9])$/
+const WEEKDAY_LABELS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
 
 const RESERVED_SLUGS = new Set([
   'api',
@@ -60,6 +65,7 @@ type CreateDynamicQrInput = {
   destinationUrl: unknown
   name?: unknown
   slug?: unknown
+  campaignChannel?: unknown
   styleOptions?: unknown
   deviceToken: string
   ipAddress?: string | null
@@ -70,17 +76,26 @@ type CreateDynamicQrInput = {
 type UpdateDynamicQrInput = {
   destinationUrl?: unknown
   name?: unknown
+  campaignChannel?: unknown
   styleOptions?: unknown
   status?: unknown
 }
 
 export type DynamicQrScanMetadata = {
   visitorHash: string | null
+  dailyVisitorHash: string | null
+  continentCode: string | null
   countryCode: string | null
+  regionCode: string | null
   city: string | null
+  timezone: string | null
+  language: string | null
   deviceType: string | null
+  operatingSystem: string | null
   browser: string | null
   referrerHost: string | null
+  localHour: number | null
+  localWeekday: number | null
   isBot: boolean
 }
 
@@ -183,6 +198,13 @@ export function sanitizeDynamicQrName(value: unknown, destinationUrl: string) {
   return value.trim().replace(/[\u0000-\u001f\u007f]/g, '').slice(0, MAX_NAME_LENGTH)
 }
 
+export function parseCampaignChannel(value: unknown): DynamicQrCampaignChannel {
+  const normalized = typeof value === 'string' ? value : 'UNSPECIFIED'
+  return DYNAMIC_QR_CHANNELS.some((channel) => channel.id === normalized)
+    ? normalized as DynamicQrCampaignChannel
+    : 'UNSPECIFIED'
+}
+
 export function sanitizeQrStyle(value: unknown): SavedQrStyle {
   const source = isRecord(value) ? value : {}
   const defaults = defaultQrOptions
@@ -276,6 +298,7 @@ export async function createAnonymousDynamicQr(
   const customSlugRequested = typeof input.slug === 'string' && input.slug.trim().length > 0
   let slug = normalizeDynamicSlug(input.slug)
   const name = sanitizeDynamicQrName(input.name, destinationUrl)
+  const campaignChannel = parseCampaignChannel(input.campaignChannel)
   const styleOptions = sanitizeQrStyle(input.styleOptions)
   const editToken = generateEditToken()
   const editTokenHash = hashEditToken(editToken)
@@ -334,6 +357,7 @@ export async function createAnonymousDynamicQr(
               creationIpHash,
               slug,
               name,
+              campaignChannel,
               destinationUrl,
               styleOptions: styleOptions as unknown as Prisma.InputJsonValue,
               logoUrl: null,
@@ -412,6 +436,9 @@ export async function updateManagedDynamicQr(
   if (input.destinationUrl !== undefined) data.destinationUrl = nextDestination
   if (input.name !== undefined) {
     data.name = sanitizeDynamicQrName(input.name, nextDestination)
+  }
+  if (input.campaignChannel !== undefined) {
+    data.campaignChannel = parseCampaignChannel(input.campaignChannel)
   }
   if (input.styleOptions !== undefined) {
     data.styleOptions = sanitizeQrStyle(input.styleOptions) as unknown as Prisma.InputJsonValue
@@ -513,21 +540,42 @@ export async function recordDynamicQrScanSafely(
   }
 }
 
-export function buildDynamicQrScanMetadata(headers: Headers, now = new Date()): DynamicQrScanMetadata {
+export function buildDynamicQrScanMetadata(
+  headers: Headers,
+  qrCodeId: string,
+  now = new Date(),
+): DynamicQrScanMetadata {
   const userAgent = headers.get('user-agent') ?? ''
-  const ipAddress = firstForwardedIp(headers.get('x-forwarded-for'))
+  const ipAddress = getClientIp(headers)
   const analyticsSecret = process.env.ANALYTICS_HASH_SECRET
   const visitorHash = ipAddress && analyticsSecret && analyticsSecret.length >= 32
-    ? hashAnonymousValue(`${ipAddress}|${userAgent}`, analyticsSecret, `visitor:${utcDate(now)}`)
+    ? hashAnonymousValue(`${ipAddress}|${userAgent}`, analyticsSecret, `visitor:${qrCodeId}`)
     : null
+  const dailyVisitorHash = ipAddress && analyticsSecret && analyticsSecret.length >= 32
+    ? hashAnonymousValue(
+        `${ipAddress}|${userAgent}`,
+        analyticsSecret,
+        `visitor-day:${qrCodeId}:${utcDate(now)}`,
+      )
+    : null
+  const timezone = cleanTimezone(headers.get('x-vercel-ip-timezone'))
+  const localTime = getLocalTimeParts(now, timezone)
 
   return {
     visitorHash,
+    dailyVisitorHash,
+    continentCode: cleanHeader(headers.get('x-vercel-ip-continent'), 2)?.toUpperCase() ?? null,
     countryCode: cleanHeader(headers.get('x-vercel-ip-country'), 2)?.toUpperCase() ?? null,
+    regionCode: cleanHeader(headers.get('x-vercel-ip-country-region'), 3)?.toUpperCase() ?? null,
     city: decodeHeader(headers.get('x-vercel-ip-city'), 120),
+    timezone,
+    language: getPrimaryLanguage(headers.get('accept-language')),
     deviceType: detectDevice(userAgent),
+    operatingSystem: detectOperatingSystem(userAgent, headers.get('sec-ch-ua-platform')),
     browser: detectBrowser(userAgent),
     referrerHost: getReferrerHost(headers.get('referer')),
+    localHour: localTime?.hour ?? null,
+    localWeekday: localTime?.weekday ?? null,
     isBot: /bot|crawler|spider|slurp|preview|facebookexternalhit|whatsapp/i.test(userAgent),
   }
 }
@@ -540,35 +588,76 @@ export async function getDynamicQrAnalytics(
   const qrCode = await findAuthorizedAnonymousQr(prisma, id, editToken)
   const from = new Date(Date.now() - ANALYTICS_RETENTION_DAYS * 24 * 60 * 60 * 1000)
 
-  const [daily, summary, countries, cities, devices, browsers, referrers] = await Promise.all([
+  const [
+    daily,
+    summary,
+    countries,
+    regions,
+    cities,
+    devices,
+    operatingSystems,
+    browsers,
+    languages,
+    localHours,
+    localWeekdays,
+    referrers,
+  ] = await Promise.all([
     prisma.$queryRaw<Array<{ date: Date; scans: bigint; uniqueVisitors: bigint }>>(Prisma.sql`
       SELECT date_trunc('day', "occurredAt") AS date,
              count(*)::bigint AS scans,
-             count(DISTINCT "visitorHash")::bigint AS "uniqueVisitors"
+             count(DISTINCT COALESCE("dailyVisitorHash", "visitorHash"))::bigint AS "uniqueVisitors"
       FROM "Click"
       WHERE "qrCodeId" = ${id} AND "occurredAt" >= ${from} AND "isBot" = false
       GROUP BY 1 ORDER BY 1
     `),
-    prisma.$queryRaw<Array<{ analyzedScans: bigint; uniqueVisitors: bigint; botScans: bigint }>>(Prisma.sql`
+    prisma.$queryRaw<Array<{
+      analyzedScans: bigint
+      uniqueVisitors: bigint
+      identifiedVisitorScans: bigint
+      botScans: bigint
+      dataCompleteness: number | null
+    }>>(Prisma.sql`
       SELECT count(*) FILTER (WHERE "isBot" = false)::bigint AS "analyzedScans",
              count(DISTINCT "visitorHash") FILTER (WHERE "isBot" = false)::bigint AS "uniqueVisitors",
-             count(*) FILTER (WHERE "isBot" = true)::bigint AS "botScans"
+             count(*) FILTER (WHERE "isBot" = false AND "visitorHash" IS NOT NULL)::bigint AS "identifiedVisitorScans",
+             count(*) FILTER (WHERE "isBot" = true)::bigint AS "botScans",
+             avg((
+               ("countryCode" IS NOT NULL)::int +
+               ("regionCode" IS NOT NULL)::int +
+               ("city" IS NOT NULL)::int +
+               ("timezone" IS NOT NULL)::int +
+               ("language" IS NOT NULL)::int +
+               ("deviceType" IS NOT NULL)::int +
+               ("operatingSystem" IS NOT NULL)::int +
+               ("browser" IS NOT NULL)::int
+             ) / 8.0) FILTER (WHERE "isBot" = false) AS "dataCompleteness"
       FROM "Click"
       WHERE "qrCodeId" = ${id} AND "occurredAt" >= ${from}
     `),
     breakdown(prisma, id, from, 'countryCode'),
+    breakdown(prisma, id, from, 'regionCode'),
     breakdown(prisma, id, from, 'city'),
     breakdown(prisma, id, from, 'deviceType'),
+    breakdown(prisma, id, from, 'operatingSystem'),
     breakdown(prisma, id, from, 'browser'),
+    breakdown(prisma, id, from, 'language'),
+    numericBreakdown(prisma, id, from, 'localHour'),
+    numericBreakdown(prisma, id, from, 'localWeekday'),
     breakdown(prisma, id, from, 'referrerHost'),
   ])
+
+  const analyzedScans = Number(summary[0]?.analyzedScans ?? 0)
+  const estimatedUniqueVisitors = Number(summary[0]?.uniqueVisitors ?? 0)
+  const identifiedVisitorScans = Number(summary[0]?.identifiedVisitorScans ?? 0)
 
   return {
     totalScans: qrCode.clickCount,
     lastScanAt: qrCode.lastClickedAt?.toISOString() ?? null,
     periodDays: ANALYTICS_RETENTION_DAYS,
-    analyzedScans: Number(summary[0]?.analyzedScans ?? 0),
-    estimatedUniqueVisitors: Number(summary[0]?.uniqueVisitors ?? 0),
+    analyzedScans,
+    estimatedUniqueVisitors,
+    returningScans: Math.max(0, identifiedVisitorScans - estimatedUniqueVisitors),
+    dataCompleteness: Math.round(Number(summary[0]?.dataCompleteness ?? 0) * 100),
     botScans: Number(summary[0]?.botScans ?? 0),
     daily: daily.map((item) => ({
       date: item.date.toISOString().slice(0, 10),
@@ -576,9 +665,17 @@ export async function getDynamicQrAnalytics(
       uniqueVisitors: Number(item.uniqueVisitors),
     })),
     countries,
+    regions,
     cities,
     devices,
+    operatingSystems,
     browsers,
+    languages,
+    localHours: localHours.map((item) => ({ ...item, label: `${item.label} h` })),
+    localWeekdays: localWeekdays.map((item) => ({
+      ...item,
+      label: WEEKDAY_LABELS[Number(item.label)] ?? 'Inconnu',
+    })),
     referrers,
   }
 }
@@ -608,7 +705,9 @@ export async function cleanupAnonymousDynamicQrData(prisma: PrismaClient, now = 
 }
 
 export function getClientIp(headers: Headers) {
-  return firstForwardedIp(headers.get('x-forwarded-for'))
+  return firstForwardedIp(
+    headers.get('x-vercel-forwarded-for') ?? headers.get('x-forwarded-for'),
+  )
 }
 
 function requireHashSecret(name: 'ANONYMOUS_QR_HASH_SECRET') {
@@ -644,6 +743,7 @@ function serializeDynamicQr(
     id: string
     slug: string
     name: string
+    campaignChannel: DynamicQrCampaignChannel
     destinationUrl: string
     status: ResourceStatus
     styleOptions: Prisma.JsonValue
@@ -658,6 +758,7 @@ function serializeDynamicQr(
     id: qrCode.id,
     slug: qrCode.slug,
     name: qrCode.name,
+    campaignChannel: qrCode.campaignChannel,
     destinationUrl: qrCode.destinationUrl,
     publicUrl: `${origin}/q/${qrCode.slug}`,
     status: qrCode.status,
@@ -673,7 +774,15 @@ async function breakdown(
   prisma: PrismaClient,
   qrCodeId: string,
   from: Date,
-  field: 'countryCode' | 'city' | 'deviceType' | 'browser' | 'referrerHost',
+  field:
+    | 'countryCode'
+    | 'regionCode'
+    | 'city'
+    | 'deviceType'
+    | 'operatingSystem'
+    | 'browser'
+    | 'language'
+    | 'referrerHost',
 ) {
   const rows = await prisma.click.groupBy({
     by: [field],
@@ -687,6 +796,28 @@ async function breakdown(
     label: row[field] || 'Inconnu',
     value: row._count._all,
   }))
+}
+
+async function numericBreakdown(
+  prisma: PrismaClient,
+  qrCodeId: string,
+  from: Date,
+  field: 'localHour' | 'localWeekday',
+) {
+  const rows = await prisma.click.groupBy({
+    by: [field],
+    where: { qrCodeId, occurredAt: { gte: from }, isBot: false },
+    _count: { _all: true },
+    orderBy: { _count: { [field]: 'desc' } },
+    take: field === 'localHour' ? 24 : 7,
+  } as never)
+
+  return (rows as unknown as Array<Record<string, number | null> & { _count: { _all: number } }>)
+    .filter((row) => row[field] !== null)
+    .map((row) => ({
+      label: String(row[field]),
+      value: row._count._all,
+    }))
 }
 
 function isPrivateHostname(hostname: string) {
@@ -777,6 +908,50 @@ function detectBrowser(userAgent: string) {
   if (/chrome\//i.test(userAgent)) return 'Chrome'
   if (/safari\//i.test(userAgent)) return 'Safari'
   return 'Autre'
+}
+
+function detectOperatingSystem(userAgent: string, clientHintPlatform: string | null) {
+  const hintedPlatform = cleanHeader(clientHintPlatform?.replace(/"/g, '') ?? null, 50)
+  if (hintedPlatform && !/^unknown$/i.test(hintedPlatform)) return hintedPlatform
+  if (!userAgent) return null
+  if (/windows nt/i.test(userAgent)) return 'Windows'
+  if (/android/i.test(userAgent)) return 'Android'
+  if (/iphone|ipad|ipod/i.test(userAgent)) return 'iOS'
+  if (/mac os x|macintosh/i.test(userAgent)) return 'macOS'
+  if (/cros/i.test(userAgent)) return 'ChromeOS'
+  if (/linux/i.test(userAgent)) return 'Linux'
+  return 'Autre'
+}
+
+function getPrimaryLanguage(value: string | null) {
+  const language = value?.split(',')[0]?.split(';')[0]?.trim().toLowerCase()
+  if (!language || !/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/i.test(language)) return null
+  return language.slice(0, 35)
+}
+
+function cleanTimezone(value: string | null) {
+  const timezone = cleanHeader(value, 64)
+  if (!timezone) return null
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: timezone }).format()
+    return timezone
+  } catch {
+    return null
+  }
+}
+
+function getLocalTimeParts(now: Date, timezone: string | null) {
+  if (!timezone) return null
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour: '2-digit',
+    hourCycle: 'h23',
+    weekday: 'short',
+  }).formatToParts(now)
+  const hour = Number(parts.find((part) => part.type === 'hour')?.value)
+  const weekdayName = parts.find((part) => part.type === 'weekday')?.value
+  const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(weekdayName ?? '')
+  return Number.isInteger(hour) && weekday >= 0 ? { hour, weekday } : null
 }
 
 function safeColor(value: unknown, fallback: string) {

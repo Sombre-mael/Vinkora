@@ -9,6 +9,7 @@ import {
   getManagedDynamicQr,
   normalizeDynamicDestination,
   normalizeDynamicSlug,
+  parseCampaignChannel,
   recordDynamicQrScanSafely,
   sanitizeQrStyle,
 } from '../lib/dynamic-qr'
@@ -21,6 +22,7 @@ type StoredQr = {
   id: string
   slug: string
   name: string
+  campaignChannel: 'UNSPECIFIED' | 'SOCIAL_MEDIA' | 'POSTER' | 'FLYER' | 'MENU' | 'EVENT' | 'PACKAGING' | 'OTHER'
   destinationUrl: string
   status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED'
   ownership: 'ANONYMOUS_BETA'
@@ -117,6 +119,29 @@ test('custom slugs are normalized and reserved slugs are refused', () => {
   assert.equal(normalizeDynamicSlug('Menu Été 2026'), 'menu-ete-2026')
   assert.throws(() => normalizeDynamicSlug('api'), DynamicQrError)
   assert.throws(() => normalizeDynamicSlug('abc'), DynamicQrError)
+})
+
+test('campaign channels are allowlisted and default safely', () => {
+  assert.equal(parseCampaignChannel('POSTER'), 'POSTER')
+  assert.equal(parseCampaignChannel('unknown-channel'), 'UNSPECIFIED')
+  assert.equal(parseCampaignChannel(undefined), 'UNSPECIFIED')
+})
+
+test('dynamic QR creation stores its campaign support', async () => {
+  await withBetaEnvironment(async () => {
+    const { prisma, rows } = createMemoryPrisma()
+    const created = await createAnonymousDynamicQr(prisma, {
+      destinationUrl: 'https://example.com/campaign',
+      name: 'Campagne rentrée',
+      slug: 'campagne-rentree',
+      campaignChannel: 'POSTER',
+      deviceToken: DEVICE_TOKEN,
+      origin: 'https://vinkora.test',
+    })
+
+    assert.equal(created.qrCode.campaignChannel, 'POSTER')
+    assert.equal(rows[0]?.campaignChannel, 'POSTER')
+  })
 })
 
 test('cloud QR style strips logo data and clamps unsafe values', () => {
@@ -265,14 +290,53 @@ test('analytics metadata is reduced and a missing secret does not break a redire
       'x-vercel-ip-city': 'Lubumbashi',
       referer: 'https://example.com/private/path?secret=yes',
     })
-    const metadata = buildDynamicQrScanMetadata(headers)
+    const metadata = buildDynamicQrScanMetadata(headers, 'qr-analytics')
     assert.equal(metadata.visitorHash, null)
+    assert.equal(metadata.dailyVisitorHash, null)
     assert.equal(metadata.deviceType, 'Mobile')
     assert.equal(metadata.browser, 'Safari')
     assert.equal(metadata.countryCode, 'CD')
     assert.equal(metadata.referrerHost, 'example.com')
     assert.equal('userAgent' in metadata, false)
     assert.equal('ipAddress' in metadata, false)
+  } finally {
+    restoreEnv('ANALYTICS_HASH_SECRET', previous)
+  }
+})
+
+test('analytics metadata enriches scans without retaining raw IP or User-Agent', () => {
+  const previous = process.env.ANALYTICS_HASH_SECRET
+  process.env.ANALYTICS_HASH_SECRET = SECRET
+  try {
+    const now = new Date('2026-10-02T10:00:00.000Z')
+    const headers = new Headers({
+      'user-agent': 'Mozilla/5.0 (Linux; Android 15) AppleWebKit Chrome/140.0 Mobile Safari/537.36',
+      'x-vercel-forwarded-for': '203.0.113.42',
+      'x-vercel-ip-continent': 'AF',
+      'x-vercel-ip-country': 'CD',
+      'x-vercel-ip-country-region': 'HK',
+      'x-vercel-ip-city': 'Lubumbashi',
+      'x-vercel-ip-timezone': 'Africa/Lubumbashi',
+      'accept-language': 'fr-CD,fr;q=0.9',
+      'sec-ch-ua-platform': '"Android"',
+    })
+    const first = buildDynamicQrScanMetadata(headers, 'qr-campaign', now)
+    const nextDay = buildDynamicQrScanMetadata(
+      headers,
+      'qr-campaign',
+      new Date('2026-10-03T10:00:00.000Z'),
+    )
+
+    assert.equal(first.continentCode, 'AF')
+    assert.equal(first.regionCode, 'HK')
+    assert.equal(first.timezone, 'Africa/Lubumbashi')
+    assert.equal(first.language, 'fr-cd')
+    assert.equal(first.operatingSystem, 'Android')
+    assert.equal(first.localHour, 12)
+    assert.equal(first.visitorHash, nextDay.visitorHash)
+    assert.notEqual(first.dailyVisitorHash, nextDay.dailyVisitorHash)
+    assert.equal('userAgent' in first, false)
+    assert.equal('ipAddress' in first, false)
   } finally {
     restoreEnv('ANALYTICS_HASH_SECRET', previous)
   }
@@ -291,11 +355,19 @@ test('an analytics failure is logged safely and does not become a redirect failu
     'qr-safe',
     {
       visitorHash: null,
+      dailyVisitorHash: null,
+      continentCode: null,
       countryCode: null,
+      regionCode: null,
       city: null,
+      timezone: null,
+      language: null,
       deviceType: null,
+      operatingSystem: null,
       browser: null,
       referrerHost: null,
+      localHour: null,
+      localWeekday: null,
       isBot: false,
     },
     { logger: (...args) => logs.push(args) },
@@ -317,11 +389,19 @@ test('bot scans are retained for the separate metric without incrementing the ma
 
   const recorded = await recordDynamicQrScanSafely(prisma, 'qr-bot', {
     visitorHash: null,
+    dailyVisitorHash: null,
+    continentCode: null,
     countryCode: null,
+    regionCode: null,
     city: null,
+    timezone: null,
+    language: null,
     deviceType: null,
+    operatingSystem: null,
     browser: null,
     referrerHost: null,
+    localHour: null,
+    localWeekday: null,
     isBot: true,
   })
 
@@ -333,6 +413,7 @@ test('bot scans are retained for the separate metric without incrementing the ma
 test('the public dynamic route keeps analytics non-blocking and returns an explicit 302', () => {
   const source = readFileSync('app/q/[slug]/route.ts', 'utf8')
   assert.match(source, /after\(\(\) => recordDynamicQrScanSafely/)
+  assert.match(source, /buildDynamicQrScanMetadata\(request\.headers, qrCode\.id\)/)
   assert.match(source, /NextResponse\.redirect\(qrCode\.destinationUrl, 302\)/)
 })
 

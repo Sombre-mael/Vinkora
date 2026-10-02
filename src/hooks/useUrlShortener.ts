@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createDynamicQr } from '@/services/dynamicQr'
 import { prepareUrl } from '@/services/shorteners'
 import type { QrOptions } from '@/types/link'
+import type { DynamicQrCampaignChannel } from '@/config/dynamicQrCampaigns'
 
 export type QrCreationMode = 'static' | 'dynamic'
 
@@ -14,6 +15,7 @@ export type ShortenResult = {
   editToken?: string
   manageUrl?: string
   name?: string
+  campaignChannel?: DynamicQrCampaignChannel
 }
 
 export const useUrlShortener = () => {
@@ -24,7 +26,12 @@ export const useUrlShortener = () => {
   const submitUrl = async (
     rawUrl: string,
     mode: QrCreationMode,
-    options: { name?: string; slug?: string; qrOptions: QrOptions },
+    options: {
+      name?: string
+      slug?: string
+      campaignChannel?: DynamicQrCampaignChannel
+      qrOptions: QrOptions
+    },
   ) => {
     setIsLoading(true)
     setError('')
@@ -58,6 +65,7 @@ export const useUrlShortener = () => {
         destinationUrl: preparedUrl,
         name: options.name,
         slug: options.slug,
+        campaignChannel: options.campaignChannel,
         styleOptions: options.qrOptions,
       })
       const nextResult: ShortenResult = {
@@ -69,6 +77,7 @@ export const useUrlShortener = () => {
         editToken: created.editToken,
         manageUrl: created.manageUrl,
         name: created.qrCode.name,
+        campaignChannel: created.qrCode.campaignChannel,
       }
       setResult(nextResult)
       return nextResult

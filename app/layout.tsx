@@ -5,6 +5,8 @@ import '@/index.css'
 import '@/App.css'
 import './saas.css'
 import './dynamic-qr.css'
+import './berlin-night.css'
+import './studio-editor.css'
 
 export const metadata: Metadata = {
   title: {

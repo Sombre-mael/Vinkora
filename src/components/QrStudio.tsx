@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   Download,
   ImagePlus,
-  Link2,
   RotateCcw,
   ScanLine,
   Sparkles,
@@ -23,6 +22,7 @@ export type QrStudioHandle = {
 
 type QrStudioProps = {
   value: string
+  mode: 'static' | 'dynamic'
   options: QrOptions
   warnings: string[]
 }
@@ -68,7 +68,7 @@ const readLogoFile = (file: File, onChange: (src: string) => void) => {
 }
 
 export const QrStudioCanvas = forwardRef<QrStudioHandle, QrStudioProps>(
-  function QrStudioCanvas({ value, options, warnings }, ref) {
+  function QrStudioCanvas({ value, mode, options, warnings }, ref) {
     const svgRef = useRef<SVGSVGElement | null>(null)
     const hasLogo = Boolean(options.logoSrc && options.showLogo)
 
@@ -104,11 +104,11 @@ export const QrStudioCanvas = forwardRef<QrStudioHandle, QrStudioProps>(
     return (
       <section className="editor-canvas" aria-label="Aperçu du QR code">
         <div className="canvas-context">
-          <span className="context-label">
-            <Link2 aria-hidden="true" />
-            Destination
-          </span>
-          <span className="context-url">{value || 'Ajoutez un lien pour commencer'}</span>
+          <div>
+            <span className="live-dot" aria-hidden="true" />
+            <span className="context-label">Aperçu en direct</span>
+          </div>
+          <span className="context-mode">{mode === 'dynamic' ? 'QR dynamique' : 'QR statique'}</span>
         </div>
 
         <div className="canvas-stage">
@@ -138,7 +138,7 @@ export const QrStudioCanvas = forwardRef<QrStudioHandle, QrStudioProps>(
                 <div className="qr-placeholder">
                   <Sparkles aria-hidden="true" />
                   <strong>Votre QR apparaîtra ici</strong>
-                  <span>Ouvrez l’outil Lien pour générer votre premier QR code.</span>
+                  <span>Collez une URL, choisissez le mode puis lancez la création.</span>
                 </div>
               )}
             </div>
@@ -236,7 +236,7 @@ export function QrStudioControls({
           </button>
         </div>
 
-        <div className="control-group">
+        <div className="control-group foreground-color-group">
           <label>Couleur du QR</label>
           <div className="swatch-grid">
             {foregroundColors.map((color) => (
@@ -260,7 +260,7 @@ export function QrStudioControls({
           </div>
         </div>
 
-        <div className="control-group">
+        <div className="control-group background-color-group">
           <label>Arrière-plan</label>
           <div className="swatch-grid">
             {backgroundColors.map((color) => (

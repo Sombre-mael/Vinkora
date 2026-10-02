@@ -72,6 +72,17 @@ enum QrOwnership {
   ANONYMOUS_BETA
 }
 
+enum QrCampaignChannel {
+  UNSPECIFIED
+  SOCIAL_MEDIA
+  POSTER
+  FLYER
+  MENU
+  EVENT
+  PACKAGING
+  OTHER
+}
+
 enum PostGraceBehavior {
   KEEP_REDIRECTING
   SHOW_EXPIRED_PAGE
@@ -300,12 +311,13 @@ model QrCode {
   editTokenHash       String?     @unique @db.VarChar(64)
   creationIpHash      String?     @db.VarChar(64)
 
-  slug           String         @unique @db.VarChar(64)
-  name           String         @db.VarChar(180)
-  destinationUrl String         @db.Text
-  styleOptions   Json
-  logoUrl        String?        @db.Text
-  status         ResourceStatus @default(ACTIVE)
+  slug            String            @unique @db.VarChar(64)
+  name            String            @db.VarChar(180)
+  campaignChannel QrCampaignChannel @default(UNSPECIFIED)
+  destinationUrl  String            @db.Text
+  styleOptions    Json
+  logoUrl         String?           @db.Text
+  status          ResourceStatus    @default(ACTIVE)
 
   clickCount    Int       @default(0)
   lastClickedAt DateTime?
@@ -332,15 +344,23 @@ model Click {
   linkId   String?
   qrCodeId String?
 
-  occurredAt  DateTime @default(now())
-  visitorHash String?  @db.VarChar(64)
+  occurredAt       DateTime @default(now())
+  visitorHash      String?  @db.VarChar(64)
+  dailyVisitorHash String?  @db.VarChar(64)
 
-  countryCode  String? @db.VarChar(2)
-  city         String? @db.VarChar(120)
-  deviceType   String? @db.VarChar(50)
-  browser      String? @db.VarChar(80)
-  referrerHost String? @db.VarChar(255)
-  isBot        Boolean @default(false)
+  continentCode   String? @db.VarChar(2)
+  countryCode     String? @db.VarChar(2)
+  regionCode      String? @db.VarChar(3)
+  city            String? @db.VarChar(120)
+  timezone        String? @db.VarChar(64)
+  language        String? @db.VarChar(35)
+  deviceType      String? @db.VarChar(50)
+  operatingSystem String? @db.VarChar(50)
+  browser         String? @db.VarChar(80)
+  referrerHost    String? @db.VarChar(255)
+  localHour       Int?    @db.SmallInt
+  localWeekday    Int?    @db.SmallInt
+  isBot           Boolean @default(false)
 
   link   Link?   @relation(fields: [linkId], references: [id], onDelete: Cascade)
   qrCode QrCode? @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
@@ -349,6 +369,7 @@ model Click {
   @@index([qrCodeId, occurredAt])
   @@index([linkId, visitorHash, occurredAt])
   @@index([qrCodeId, visitorHash, occurredAt])
+  @@index([qrCodeId, dailyVisitorHash, occurredAt])
   @@index([occurredAt, isBot])
 }
 

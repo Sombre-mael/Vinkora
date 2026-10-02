@@ -1,11 +1,16 @@
 import { Link2, QrCode, RefreshCw, X } from 'lucide-react'
 import type { QrCreationMode } from '@/hooks/useUrlShortener'
+import {
+  DYNAMIC_QR_CHANNELS,
+  type DynamicQrCampaignChannel,
+} from '@/config/dynamicQrCampaigns'
 
 type UrlShortenerProps = {
   url: string
   mode: QrCreationMode
   dynamicName: string
   dynamicSlug: string
+  dynamicCampaignChannel: DynamicQrCampaignChannel
   dynamicCreationEnabled: boolean
   error: string
   isLoading: boolean
@@ -13,6 +18,7 @@ type UrlShortenerProps = {
   onModeChange: (mode: QrCreationMode) => void
   onDynamicNameChange: (name: string) => void
   onDynamicSlugChange: (slug: string) => void
+  onDynamicCampaignChannelChange: (channel: DynamicQrCampaignChannel) => void
   onSubmit: () => void
   onReset: () => void
 }
@@ -22,6 +28,7 @@ export function UrlShortener({
   mode,
   dynamicName,
   dynamicSlug,
+  dynamicCampaignChannel,
   dynamicCreationEnabled,
   error,
   isLoading,
@@ -29,6 +36,7 @@ export function UrlShortener({
   onModeChange,
   onDynamicNameChange,
   onDynamicSlugChange,
+  onDynamicCampaignChannelChange,
   onSubmit,
   onReset,
 }: UrlShortenerProps) {
@@ -36,47 +44,60 @@ export function UrlShortener({
     <section className="tool-panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Destination</p>
-          <h2>Ajoutez votre lien</h2>
+          <p className="eyebrow">Nouveau QR</p>
+          <h2>Destination</h2>
         </div>
         <Link2 className="panel-icon" aria-hidden="true" />
       </div>
 
-      <p className="helper-text">
-        Créez un QR statique local ou un QR dynamique modifiable pendant la bêta gratuite.
-      </p>
+      <p className="helper-text">Indiquez l’adresse vers laquelle votre QR doit mener.</p>
 
-      <div className="mode-switch" aria-label="Mode de génération">
-        <button
-          type="button"
-          className={mode === 'static' ? 'is-active' : ''}
-          onClick={() => onModeChange('static')}
-        >
-          <QrCode aria-hidden="true" />
-          QR statique
-        </button>
-        <button
-          type="button"
-          className={mode === 'dynamic' ? 'is-active' : ''}
-          onClick={() => onModeChange('dynamic')}
-          disabled={!dynamicCreationEnabled && mode !== 'dynamic'}
-        >
-          <RefreshCw aria-hidden="true" />
-          Dynamique · Bêta
-        </button>
+      <label className="field-label" htmlFor="url-input">URL de destination</label>
+      <div className="input-shell">
+        <Link2 aria-hidden="true" />
+        <input
+          id="url-input"
+          type="url"
+          value={url}
+          onChange={(event) => onUrlChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              onSubmit()
+            }
+          }}
+          placeholder="https://exemple.com"
+        />
+        {url ? (
+          <button type="button" onClick={onReset} aria-label="Effacer l'URL">
+            <X aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
+
+      {error ? <p className="inline-error">{error}</p> : null}
 
       {mode === 'dynamic' ? (
         <div className="dynamic-fields">
-          <label className="field-label" htmlFor="dynamic-name">Nom <span>Facultatif</span></label>
+          <label className="field-label" htmlFor="dynamic-name">Nom de la campagne <span>Facultatif</span></label>
           <input
             id="dynamic-name"
             className="standalone-input"
             value={dynamicName}
             maxLength={180}
             onChange={(event) => onDynamicNameChange(event.target.value)}
-            placeholder="Menu, affiche, campagne…"
+            placeholder="Menu été, lancement, événement…"
           />
+          <label className="field-label" htmlFor="dynamic-channel">Support <span>Facultatif</span></label>
+          <select
+            id="dynamic-channel"
+            className="standalone-input"
+            value={dynamicCampaignChannel}
+            onChange={(event) => onDynamicCampaignChannelChange(event.target.value as DynamicQrCampaignChannel)}
+          >
+            {DYNAMIC_QR_CHANNELS.map((channel) => (
+              <option key={channel.id} value={channel.id}>{channel.label}</option>
+            ))}
+          </select>
           <label className="field-label" htmlFor="dynamic-slug">Slug personnalisé <span>Facultatif</span></label>
           <div className="slug-input-shell">
             <span>/q/</span>
@@ -96,30 +117,25 @@ export function UrlShortener({
         </div>
       ) : null}
 
-      <label className="field-label" htmlFor="url-input">
-        URL
-      </label>
-      <div className="input-shell">
-        <input
-          id="url-input"
-          type="url"
-          value={url}
-          onChange={(event) => onUrlChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              onSubmit()
-            }
-          }}
-          placeholder="https://exemple.com/page-importante"
-        />
-        {url ? (
-          <button type="button" onClick={onReset} aria-label="Effacer l'URL">
-            <X aria-hidden="true" />
-          </button>
-        ) : null}
+      <div className="mode-switch" aria-label="Mode de génération">
+        <button
+          type="button"
+          className={mode === 'static' ? 'is-active' : ''}
+          onClick={() => onModeChange('static')}
+        >
+          <QrCode aria-hidden="true" />
+          QR statique
+        </button>
+        <button
+          type="button"
+          className={mode === 'dynamic' ? 'is-active' : ''}
+          onClick={() => onModeChange('dynamic')}
+        >
+          <RefreshCw aria-hidden="true" />
+          QR dynamique
+          <span className="beta-chip">Bêta</span>
+        </button>
       </div>
-
-      {error ? <p className="inline-error">{error}</p> : null}
 
       <button
         className="primary-action"

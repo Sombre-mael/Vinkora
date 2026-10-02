@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, context: DynamicQrRouteContext) 
     return rewriteToStatus(request, qrCode.status === 'ARCHIVED' ? 'archived' : 'suspended', 410)
   }
 
-  const metadata = buildDynamicQrScanMetadata(request.headers)
+  const metadata = buildDynamicQrScanMetadata(request.headers, qrCode.id)
   after(() => recordDynamicQrScanSafely(prisma, qrCode.id, metadata))
   return NextResponse.redirect(qrCode.destinationUrl, 302)
 }

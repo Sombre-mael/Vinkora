@@ -1,0 +1,1748 @@
+/* Dedicated Studio layout. Kept separate from the public SaaS surfaces. */
+.vinkora-studio {
+  --studio-bg: #050b14;
+  --studio-surface: #081322;
+  --studio-surface-raised: #0c192a;
+  --studio-line: #223149;
+  --studio-line-soft: rgba(148, 163, 184, 0.16);
+  --studio-text: #f8fafc;
+  --studio-muted: #9aa8bc;
+  --studio-purple: #6b4dff;
+  --studio-blue: #397fe5;
+  --studio-cyan: #18c7b7;
+  --studio-gradient: linear-gradient(135deg, #6b4dff 0%, #397fe5 54%, #18c7b7 100%);
+  background: var(--studio-bg) !important;
+  color: var(--studio-text);
+}
+
+.vinkora-studio * {
+  letter-spacing: 0;
+}
+
+.vinkora-studio .editor-header {
+  border-color: var(--studio-line) !important;
+  background: #06101d !important;
+}
+
+.vinkora-studio .header-brand img {
+  object-fit: contain;
+}
+
+.vinkora-studio .studio-header-title {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+}
+
+.vinkora-studio .studio-header-title span {
+  color: var(--studio-text);
+  font-size: 0.9rem;
+  font-weight: 760;
+}
+
+.vinkora-studio .studio-header-title small {
+  margin-top: 2px;
+  color: var(--studio-muted);
+  font-size: 0.7rem;
+}
+
+.vinkora-studio .export-button,
+.vinkora-studio .primary-action,
+.vinkora-studio .mobile-export-action {
+  border: 0 !important;
+  background: var(--studio-gradient) !important;
+  box-shadow: 0 10px 28px rgba(57, 127, 229, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.vinkora-studio .export-button:disabled,
+.vinkora-studio .primary-action:disabled,
+.vinkora-studio .mobile-export-action:disabled {
+  box-shadow: none !important;
+  filter: saturate(0.35);
+  opacity: 0.45;
+}
+
+.vinkora-studio .editor-sidebar {
+  border-color: var(--studio-line) !important;
+  background: #06101d !important;
+}
+
+.vinkora-studio .editor-sidebar nav button {
+  border: 1px solid transparent;
+  background: transparent !important;
+  color: var(--studio-muted) !important;
+}
+
+.vinkora-studio .editor-sidebar nav button:hover {
+  border-color: var(--studio-line);
+  background: var(--studio-surface-raised) !important;
+  color: var(--studio-text) !important;
+}
+
+.vinkora-studio .editor-sidebar nav button.is-active {
+  border-color: rgba(24, 199, 183, 0.3);
+  background: rgba(24, 199, 183, 0.09) !important;
+  color: var(--studio-cyan) !important;
+}
+
+.vinkora-studio .editor-sidebar nav button.is-active::before {
+  background: var(--studio-cyan) !important;
+}
+
+.vinkora-studio .editor-workspace,
+.vinkora-studio .workspace-main,
+.vinkora-studio .workspace-main:not(.history-view) {
+  background: var(--studio-bg) !important;
+}
+
+.vinkora-studio .desktop-destination-panel,
+.vinkora-studio .desktop-appearance-panel {
+  background: var(--studio-surface) !important;
+  scrollbar-color: #35445a transparent;
+  scrollbar-width: thin;
+}
+
+.vinkora-studio .desktop-destination-panel {
+  border-right: 1px solid var(--studio-line) !important;
+}
+
+.vinkora-studio .desktop-appearance-panel {
+  border-left: 1px solid var(--studio-line) !important;
+}
+
+.vinkora-studio .tool-panel,
+.vinkora-studio .inspector-content {
+  color: var(--studio-text);
+}
+
+.vinkora-studio .section-heading,
+.vinkora-studio .inspector-heading {
+  align-items: center;
+}
+
+.vinkora-studio .section-heading h2,
+.vinkora-studio .inspector-heading h2 {
+  color: var(--studio-text) !important;
+  font-size: clamp(1.2rem, 1.5vw, 1.55rem) !important;
+  line-height: 1.1;
+}
+
+.vinkora-studio .eyebrow {
+  margin-bottom: 6px;
+  color: var(--studio-cyan) !important;
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.vinkora-studio .helper-text,
+.vinkora-studio .inspector-copy,
+.vinkora-studio .beta-note,
+.vinkora-studio .muted-panel p,
+.vinkora-studio .result-panel p {
+  color: var(--studio-muted) !important;
+}
+
+.vinkora-studio .panel-icon {
+  color: var(--studio-cyan) !important;
+}
+
+.vinkora-studio .input-shell,
+.vinkora-studio .standalone-input,
+.vinkora-studio .slug-input-shell,
+.vinkora-studio .result-link {
+  border: 1px solid var(--studio-line) !important;
+  background: #07111f !important;
+  color: var(--studio-text) !important;
+  box-shadow: none !important;
+}
+
+.vinkora-studio .input-shell {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.vinkora-studio .input-shell > svg {
+  width: 17px;
+  height: 17px;
+  color: var(--studio-muted);
+}
+
+.vinkora-studio .input-shell input,
+.vinkora-studio .standalone-input,
+.vinkora-studio .slug-input-shell input {
+  color: var(--studio-text) !important;
+}
+
+.vinkora-studio .input-shell:focus-within,
+.vinkora-studio .standalone-input:focus,
+.vinkora-studio .slug-input-shell:focus-within {
+  border-color: var(--studio-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(24, 199, 183, 0.1) !important;
+}
+
+.vinkora-studio .field-label {
+  color: #d8e0eb !important;
+  font-size: 0.72rem;
+}
+
+.vinkora-studio .mode-switch {
+  border: 1px solid var(--studio-line) !important;
+  background: #07111f !important;
+  padding: 4px !important;
+}
+
+.vinkora-studio .mode-switch button {
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--studio-muted) !important;
+  box-shadow: none !important;
+}
+
+.vinkora-studio .mode-switch button.is-active {
+  background: rgba(24, 199, 183, 0.12) !important;
+  color: var(--studio-text) !important;
+}
+
+.vinkora-studio .mode-switch button.is-active svg {
+  color: var(--studio-cyan);
+}
+
+.vinkora-studio .beta-chip {
+  background: var(--studio-cyan) !important;
+  color: #041018 !important;
+}
+
+.vinkora-studio .dynamic-fields,
+.vinkora-studio .muted-panel,
+.vinkora-studio .result-panel {
+  border-color: var(--studio-line) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.vinkora-studio .appearance-panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  gap: 8px;
+  border-bottom: 1px solid var(--studio-line);
+  background: rgba(8, 19, 34, 0.97);
+  padding: 12px 18px 10px;
+}
+
+.vinkora-studio .appearance-panel-header > span {
+  color: var(--studio-text);
+  font-size: 0.9rem;
+  font-weight: 780;
+}
+
+.vinkora-studio .appearance-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  border: 1px solid var(--studio-line);
+  border-radius: 7px;
+  background: #07111f;
+  padding: 3px;
+}
+
+.vinkora-studio .appearance-tabs button {
+  min-width: 0;
+  min-height: 36px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--studio-muted);
+  font-size: 0.7rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.vinkora-studio .appearance-tabs button.is-active {
+  background: var(--studio-surface-raised);
+  color: var(--studio-text);
+}
+
+.vinkora-studio .desktop-appearance-panel .inspector-content {
+  padding: 0 18px 8px !important;
+}
+
+.vinkora-studio .desktop-appearance-panel .inspector-heading {
+  min-height: 40px;
+  justify-content: flex-end;
+  margin: 8px 0 0;
+}
+
+.vinkora-studio .desktop-appearance-panel .inspector-heading > div {
+  display: none;
+}
+
+.vinkora-studio .desktop-appearance-panel .inspector-heading:not(:has(.icon-button)) {
+  display: none;
+}
+
+.vinkora-studio .desktop-appearance-panel .control-group {
+  margin: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--studio-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 12px 0 !important;
+}
+
+.vinkora-studio .desktop-appearance-panel .control-group:first-of-type {
+  border-top: 0 !important;
+}
+
+.vinkora-studio .desktop-appearance-panel .swatch-grid {
+  grid-template-columns: repeat(auto-fit, 36px) !important;
+  gap: 9px !important;
+}
+
+.vinkora-studio .desktop-appearance-panel .swatch-grid > button,
+.vinkora-studio .desktop-appearance-panel .custom-color {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+}
+
+.vinkora-studio .desktop-appearance-panel .foreground-color-group .swatch-grid > button,
+.vinkora-studio .desktop-appearance-panel .foreground-color-group .custom-color {
+  border-radius: 50% !important;
+}
+
+.vinkora-studio .desktop-appearance-panel .option-grid button {
+  min-height: 52px;
+}
+
+.vinkora-studio .desktop-appearance-panel .segmented {
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+}
+
+.vinkora-studio .desktop-appearance-panel .segmented button {
+  min-height: 38px;
+  padding-inline: 8px;
+}
+
+.vinkora-studio .desktop-appearance-panel .range-stack > label {
+  margin: 9px 0 5px;
+}
+
+.vinkora-studio .desktop-appearance-panel .logo-upload {
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+  padding: 9px;
+}
+
+.vinkora-studio .desktop-appearance-panel .logo-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+}
+
+.vinkora-studio .desktop-appearance-panel .logo-preview img {
+  width: 48px;
+  height: 48px;
+}
+
+.vinkora-studio .desktop-appearance-panel .logo-upload p {
+  margin: 3px 0 7px;
+  font-size: 0.68rem;
+}
+
+.vinkora-studio .desktop-appearance-panel .file-button {
+  min-height: 34px;
+}
+
+.vinkora-studio .desktop-appearance-panel .full-width {
+  min-height: 38px;
+  margin-top: 8px;
+}
+
+.vinkora-studio .desktop-appearance-panel .toggle-row {
+  min-height: 42px;
+  margin-top: 4px;
+}
+
+.vinkora-studio .desktop-appearance-panel .danger-link {
+  min-height: 38px;
+  margin-top: 7px;
+}
+
+.vinkora-studio .desktop-appearance-panel .toggle-row,
+.vinkora-studio .desktop-appearance-panel .gradient-controls,
+.vinkora-studio .desktop-appearance-panel .color-field {
+  border-color: var(--studio-line) !important;
+}
+
+.vinkora-studio .editor-canvas {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  background-color: var(--studio-bg) !important;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.032) 1px, transparent 1px) !important;
+  background-size: 40px 40px !important;
+  padding: 18px 24px 20px !important;
+}
+
+.vinkora-studio .canvas-context {
+  width: min(100%, 520px) !important;
+  min-height: 36px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 2px !important;
+}
+
+.vinkora-studio .live-dot {
+  background: var(--studio-cyan) !important;
+  box-shadow: 0 0 0 6px rgba(24, 199, 183, 0.11);
+}
+
+.vinkora-studio .context-mode {
+  border: 1px solid rgba(24, 199, 183, 0.55) !important;
+  background: rgba(24, 199, 183, 0.08) !important;
+  color: var(--studio-cyan) !important;
+}
+
+.vinkora-studio .canvas-stage {
+  min-height: 0;
+}
+
+.vinkora-studio .qr-paper {
+  width: min(100%, calc(100dvh - 205px), 470px) !important;
+  min-width: 0 !important;
+  aspect-ratio: 1;
+  border: 1px solid #d9dee7 !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32) !important;
+  padding: clamp(22px, 3.2dvh, 32px) !important;
+}
+
+.vinkora-studio .qr-frame {
+  width: min(100%, 390px) !important;
+  max-width: 100%;
+}
+
+.vinkora-studio .qr-placeholder {
+  color: #64748b !important;
+}
+
+.vinkora-studio .qr-placeholder strong {
+  color: #101827 !important;
+}
+
+.vinkora-studio .scan-status {
+  width: min(100%, 520px) !important;
+  min-height: 44px;
+  border: 1px solid var(--studio-line) !important;
+  border-radius: 8px !important;
+  background: var(--studio-surface) !important;
+  box-shadow: none !important;
+  color: var(--studio-muted) !important;
+}
+
+.vinkora-studio .scan-status > div,
+.vinkora-studio .scan-status svg {
+  color: var(--studio-cyan) !important;
+}
+
+.vinkora-studio .mobile-link-panel,
+.vinkora-studio .mobile-studio-actions,
+.vinkora-studio .mobile-tool-bar,
+.vinkora-studio .editor-inspector,
+.vinkora-studio .mobile-backdrop {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .vinkora-studio.editor-shell {
+    display: grid !important;
+    width: 100%;
+    height: 100dvh;
+    min-height: 640px;
+    grid-template-columns: 136px minmax(0, 1fr) !important;
+    grid-template-rows: 72px minmax(0, 1fr) !important;
+    overflow: hidden;
+  }
+
+  .vinkora-studio .editor-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: grid !important;
+    grid-template-columns: 136px minmax(0, 1fr) auto;
+    gap: 0;
+    min-height: 72px;
+    padding: 0 18px 0 0 !important;
+  }
+
+  .vinkora-studio .header-brand {
+    display: flex;
+    width: 136px;
+    height: 72px;
+    align-items: center;
+    border-right: 1px solid var(--studio-line) !important;
+    padding: 0 16px !important;
+  }
+
+  .vinkora-studio .header-brand img {
+    width: 104px !important;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .vinkora-studio .studio-header-title {
+    padding-left: 18px;
+  }
+
+  .vinkora-studio .header-export {
+    align-self: center;
+    margin: 0 !important;
+  }
+
+  .vinkora-studio .export-button {
+    min-width: 142px !important;
+    min-height: 44px !important;
+    border-radius: 7px !important;
+  }
+
+  .vinkora-studio .mobile-history-button {
+    display: none !important;
+  }
+
+  .vinkora-studio .editor-sidebar {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex !important;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .vinkora-studio .editor-sidebar nav {
+    display: grid;
+    gap: 8px;
+    padding: 18px 10px !important;
+  }
+
+  .vinkora-studio .editor-sidebar nav button {
+    min-height: 58px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 9px;
+    border-radius: 7px;
+    padding: 8px 12px;
+  }
+
+  .vinkora-studio .editor-sidebar nav button::before {
+    inset: 12px auto 12px -10px !important;
+    width: 4px !important;
+  }
+
+  .vinkora-studio .editor-sidebar nav button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .vinkora-studio .editor-sidebar nav button span {
+    font-size: 0.7rem;
+  }
+
+  .vinkora-studio .editor-workspace {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid !important;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(250px, 0.82fr) minmax(340px, 1.22fr) minmax(270px, 0.88fr) !important;
+    overflow: hidden !important;
+  }
+
+  .vinkora-studio .desktop-destination-panel,
+  .vinkora-studio .desktop-appearance-panel {
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .vinkora-studio .desktop-destination-panel .link-inspector {
+    padding: 22px 20px 28px !important;
+  }
+
+  .vinkora-studio .desktop-destination-panel .helper-text {
+    margin: 12px 0 20px;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  .vinkora-studio .desktop-destination-panel .field-label {
+    margin-top: 14px;
+  }
+
+  .vinkora-studio .desktop-destination-panel .input-shell,
+  .vinkora-studio .desktop-destination-panel .standalone-input,
+  .vinkora-studio .desktop-destination-panel .slug-input-shell {
+    min-height: 46px;
+    border-radius: 7px !important;
+  }
+
+  .vinkora-studio .desktop-destination-panel .mode-switch {
+    margin-top: 18px;
+  }
+
+  .vinkora-studio .desktop-destination-panel .mode-switch button {
+    min-height: 44px;
+    font-size: 0.7rem;
+  }
+
+  .vinkora-studio .desktop-destination-panel .primary-action {
+    min-height: 46px;
+    margin-top: 14px;
+    border-radius: 7px !important;
+  }
+
+  .vinkora-studio .desktop-destination-panel .muted-panel,
+  .vinkora-studio .desktop-destination-panel .result-panel {
+    margin-top: 20px;
+    border-top: 1px solid var(--studio-line) !important;
+    border-radius: 0 !important;
+    padding: 18px 0 0 !important;
+  }
+
+  .vinkora-studio .desktop-destination-panel .muted-panel h2,
+  .vinkora-studio .desktop-destination-panel .muted-panel p {
+    font-size: 0.76rem !important;
+  }
+
+  .vinkora-studio .workspace-main {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden !important;
+  }
+
+  .vinkora-studio .editor-workspace > .editor-inspector {
+    display: none !important;
+  }
+
+  .vinkora-studio .editor-workspace.is-history {
+    display: block !important;
+    overflow-y: auto !important;
+  }
+
+  .vinkora-studio .editor-workspace.is-history .history-view {
+    min-height: 100%;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .vinkora-studio.editor-shell {
+    grid-template-columns: 86px minmax(0, 1fr) !important;
+  }
+
+  .vinkora-studio .editor-header {
+    grid-template-columns: 86px minmax(0, 1fr) auto;
+  }
+
+  .vinkora-studio .header-brand {
+    width: 86px;
+    justify-content: center;
+    padding: 0 14px !important;
+  }
+
+  .vinkora-studio .header-brand img {
+    width: 56px !important;
+    object-position: left;
+  }
+
+  .vinkora-studio .editor-sidebar nav button span {
+    display: none;
+  }
+
+  .vinkora-studio .editor-sidebar nav button {
+    min-height: 50px;
+    justify-content: center;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  .vinkora-studio .editor-workspace {
+    grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.05fr) minmax(0, 0.86fr) !important;
+  }
+
+  .vinkora-studio .desktop-destination-panel .link-inspector {
+    padding: 18px 16px 24px !important;
+  }
+
+  .vinkora-studio .appearance-panel-header,
+  .vinkora-studio .desktop-appearance-panel .inspector-content {
+    padding-right: 14px !important;
+    padding-left: 14px !important;
+  }
+
+  .vinkora-studio .desktop-appearance-panel .swatch-grid {
+    grid-template-columns: repeat(auto-fit, 34px) !important;
+  }
+
+  .vinkora-studio .desktop-appearance-panel .swatch-grid > button,
+  .vinkora-studio .desktop-appearance-panel .custom-color {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .vinkora-studio .qr-paper {
+    width: min(100%, calc(100dvh - 214px), 390px) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .vinkora-studio.editor-shell {
+    display: flex !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+  }
+
+  .vinkora-studio .editor-header {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    display: grid !important;
+    width: 100%;
+    min-height: 62px;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px !important;
+  }
+
+  .vinkora-studio .header-brand {
+    display: flex;
+    width: max-content;
+    max-width: 150px;
+    align-items: center;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  .vinkora-studio .header-brand img {
+    display: block !important;
+    width: 124px !important;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .vinkora-studio .studio-header-title,
+  .vinkora-studio .header-export,
+  .vinkora-studio .editor-sidebar {
+    display: none !important;
+  }
+
+  .vinkora-studio .mobile-history-button {
+    display: grid !important;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border: 1px solid var(--studio-line) !important;
+    border-radius: 7px !important;
+    background: var(--studio-surface-raised) !important;
+    color: var(--studio-cyan) !important;
+  }
+
+  .vinkora-studio .mobile-link-panel {
+    display: block !important;
+    width: 100%;
+    border-bottom: 1px solid var(--studio-line) !important;
+    background: #06101d !important;
+    color: var(--studio-text) !important;
+    padding: 16px !important;
+  }
+
+  .vinkora-studio .mobile-link-heading {
+    display: none;
+  }
+
+  .vinkora-studio .mobile-link-heading small,
+  .vinkora-studio .mobile-link-heading strong {
+    display: block;
+  }
+
+  .vinkora-studio .mobile-link-heading small {
+    color: var(--studio-cyan) !important;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .vinkora-studio .mobile-link-heading strong {
+    margin-top: 3px;
+    color: var(--studio-text) !important;
+    font-size: 0.95rem;
+  }
+
+  .vinkora-studio .mobile-link-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 86px;
+    gap: 8px;
+  }
+
+  .vinkora-studio .mobile-url-input,
+  .vinkora-studio .mobile-dynamic-fields input,
+  .vinkora-studio .mobile-dynamic-fields select {
+    min-width: 0;
+    min-height: 46px;
+    border: 1px solid var(--studio-line) !important;
+    border-radius: 7px !important;
+    background: var(--studio-surface) !important;
+    color: var(--studio-text) !important;
+  }
+
+  .vinkora-studio .mobile-link-form > button {
+    min-width: 0;
+    min-height: 46px;
+    border: 0 !important;
+    border-radius: 7px !important;
+    background: var(--studio-gradient) !important;
+    color: #ffffff !important;
+  }
+
+  .vinkora-studio .mobile-mode-switch {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+    padding: 0;
+  }
+
+  .vinkora-studio .mobile-mode-switch button {
+    display: flex;
+    min-width: 0;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--studio-line) !important;
+    border-radius: 999px !important;
+    background: var(--studio-surface) !important;
+    color: var(--studio-muted) !important;
+    font-size: 0.72rem;
+    font-weight: 720;
+  }
+
+  .vinkora-studio .mobile-mode-switch button.is-active {
+    border-color: var(--studio-cyan) !important;
+    background: rgba(24, 199, 183, 0.1) !important;
+    color: var(--studio-text) !important;
+  }
+
+  .vinkora-studio .mobile-mode-switch button.is-active svg {
+    color: var(--studio-cyan) !important;
+  }
+
+  .vinkora-studio .mobile-dynamic-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+    border-top: 1px solid var(--studio-line) !important;
+    padding-top: 12px;
+  }
+
+  .vinkora-studio .mobile-dynamic-fields label,
+  .vinkora-studio .mobile-dynamic-fields label > span {
+    display: grid;
+    min-width: 0;
+  }
+
+  .vinkora-studio .mobile-dynamic-fields label > span {
+    margin-bottom: 5px;
+    color: var(--studio-muted) !important;
+    font-size: 0.66rem;
+    font-weight: 750;
+  }
+
+  .vinkora-studio .mobile-feature-note {
+    margin: 10px 0 0;
+    color: var(--studio-cyan) !important;
+    font-size: 0.67rem;
+  }
+
+  .vinkora-studio .editor-workspace {
+    display: block !important;
+    width: 100%;
+    min-width: 0;
+    overflow: visible !important;
+  }
+
+  .vinkora-studio .desktop-destination-panel,
+  .vinkora-studio .desktop-appearance-panel {
+    display: none !important;
+  }
+
+  .vinkora-studio .workspace-main {
+    width: 100%;
+    min-width: 0;
+    overflow: visible !important;
+  }
+
+  .vinkora-studio .editor-canvas {
+    min-height: 0;
+    grid-template-rows: auto auto auto;
+    gap: 10px;
+    padding: 12px 16px 14px !important;
+  }
+
+  .vinkora-studio .canvas-context {
+    width: 100% !important;
+    min-height: 34px;
+  }
+
+  .vinkora-studio .canvas-stage {
+    min-height: 0;
+  }
+
+  .vinkora-studio .qr-paper {
+    width: min(calc(100vw - 32px), 300px) !important;
+    max-width: 100%;
+    padding: clamp(18px, 6vw, 25px) !important;
+  }
+
+  .vinkora-studio .qr-frame {
+    width: 100% !important;
+  }
+
+  .vinkora-studio .scan-status {
+    display: none !important;
+  }
+
+  .vinkora-studio .mobile-studio-actions {
+    position: sticky;
+    bottom: calc(86px + env(safe-area-inset-bottom));
+    z-index: 45;
+    display: grid !important;
+    width: 100%;
+    gap: 12px;
+    border-top: 1px solid var(--studio-line);
+    background: var(--studio-bg);
+    box-shadow: 0 -14px 36px rgba(2, 8, 16, 0.24);
+    padding: 14px 16px 18px;
+  }
+
+  .vinkora-studio .mobile-appearance-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .vinkora-studio .mobile-appearance-actions button {
+    display: grid;
+    min-width: 0;
+    min-height: 58px;
+    place-items: center;
+    gap: 4px;
+    border: 1px solid var(--studio-line);
+    border-radius: 8px;
+    background: var(--studio-surface);
+    color: var(--studio-muted);
+    font-size: 0.67rem;
+    font-weight: 700;
+  }
+
+  .vinkora-studio .mobile-appearance-actions button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .vinkora-studio .mobile-appearance-actions button.is-active {
+    border-color: rgba(24, 199, 183, 0.55);
+    color: var(--studio-cyan);
+  }
+
+  .vinkora-studio .mobile-export-action {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border-radius: 7px !important;
+    font-size: 0.85rem;
+    font-weight: 780;
+  }
+
+  .vinkora-studio .mobile-tool-bar {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 70;
+    display: grid !important;
+    min-height: 62px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--studio-line) !important;
+    background: rgba(6, 16, 29, 0.98) !important;
+    padding: 4px 6px max(4px, env(safe-area-inset-bottom));
+  }
+
+  .vinkora-studio .mobile-tool-bar button {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 52px;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent !important;
+    color: var(--studio-muted) !important;
+    font-size: 0.62rem;
+    font-weight: 700;
+  }
+
+  .vinkora-studio .mobile-tool-bar button svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .vinkora-studio .mobile-tool-bar button.is-active {
+    color: var(--studio-cyan) !important;
+  }
+
+  .vinkora-studio .mobile-tool-bar button.is-active::after {
+    position: absolute;
+    inset: auto 24% -4px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--studio-cyan) !important;
+    content: "";
+  }
+
+  .vinkora-studio .mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 79;
+    display: block !important;
+    border: 0;
+    background: rgba(2, 8, 16, 0.7) !important;
+    backdrop-filter: blur(3px);
+  }
+
+  .vinkora-studio .editor-inspector {
+    position: fixed;
+    inset: auto 0 calc(62px + env(safe-area-inset-bottom));
+    z-index: 80;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: min(72dvh, 680px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid var(--studio-line) !important;
+    border-bottom: 0 !important;
+    border-radius: 16px 16px 0 0 !important;
+    background: var(--studio-surface) !important;
+    box-shadow: 0 -24px 70px rgba(0, 0, 0, 0.4);
+    transform: translateY(calc(100% + 80px));
+    transition: transform 220ms ease;
+  }
+
+  .vinkora-studio .editor-inspector.is-open {
+    transform: translateY(0);
+  }
+
+  .vinkora-studio .editor-inspector .inspector-content {
+    padding: 28px 18px 24px !important;
+  }
+
+  .vinkora-studio .mobile-sheet-handle {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    display: block !important;
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: #526178 !important;
+    transform: translateX(-50%);
+  }
+
+  .vinkora-studio .mobile-panel-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid var(--studio-line) !important;
+    border-radius: 7px !important;
+    background: var(--studio-surface-raised) !important;
+    color: var(--studio-text) !important;
+  }
+
+  .vinkora-studio .history-view {
+    min-height: calc(100dvh - 62px - 66px);
+    padding: 16px;
+  }
+}
+
+@media (max-width: 390px) {
+  .vinkora-studio .editor-header,
+  .vinkora-studio .mobile-link-panel,
+  .vinkora-studio .editor-canvas,
+  .vinkora-studio .mobile-studio-actions {
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+
+  .vinkora-studio .header-brand img {
+    width: 116px !important;
+  }
+
+  .vinkora-studio .mobile-link-form {
+    grid-template-columns: minmax(0, 1fr) 78px;
+  }
+
+  .vinkora-studio .mobile-link-form > button {
+    font-size: 0.72rem;
+  }
+
+  .vinkora-studio .qr-paper,
+  .vinkora-studio .scan-status {
+    width: min(calc(100vw - 24px), 292px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vinkora-studio *,
+  .vinkora-studio *::before,
+  .vinkora-studio *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Balanced light workspace: dark chrome, calm editing surfaces and explicit contrast. */
+.vinkora-studio .desktop-destination-panel,
+.vinkora-studio .desktop-appearance-panel,
+.vinkora-studio .editor-inspector {
+  background: #f7f9fc !important;
+  color: #0b1220 !important;
+}
+
+.vinkora-studio .desktop-destination-panel {
+  border-right-color: #d9e2ed !important;
+}
+
+.vinkora-studio .desktop-appearance-panel {
+  border-left-color: #d9e2ed !important;
+}
+
+.vinkora-studio .desktop-destination-panel :is(h2, h3, label, strong),
+.vinkora-studio .desktop-appearance-panel :is(h2, h3, label, strong),
+.vinkora-studio .editor-inspector :is(h2, h3, label, strong) {
+  color: #0b1220 !important;
+}
+
+.vinkora-studio .desktop-destination-panel :is(.helper-text, .inspector-copy, .beta-note, small, p),
+.vinkora-studio .desktop-appearance-panel :is(.helper-text, .inspector-copy, small, p),
+.vinkora-studio .editor-inspector :is(.helper-text, .inspector-copy, small, p) {
+  color: #627086 !important;
+}
+
+.vinkora-studio .desktop-destination-panel .eyebrow,
+.vinkora-studio .desktop-appearance-panel .eyebrow,
+.vinkora-studio .editor-inspector .eyebrow {
+  color: #0e8f85 !important;
+}
+
+.vinkora-studio .desktop-destination-panel :is(.input-shell, .standalone-input, .slug-input-shell, .result-link),
+.vinkora-studio .editor-inspector :is(.input-shell, .standalone-input, .slug-input-shell, .result-link) {
+  border-color: #cad5e2 !important;
+  background: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+.vinkora-studio .desktop-destination-panel :is(input, select),
+.vinkora-studio .editor-inspector :is(input, select) {
+  color: #0b1220 !important;
+}
+
+.vinkora-studio .desktop-destination-panel :is(input, select)::placeholder,
+.vinkora-studio .editor-inspector :is(input, select)::placeholder {
+  color: #8b98aa !important;
+}
+
+.vinkora-studio .desktop-destination-panel .mode-switch,
+.vinkora-studio .editor-inspector .mode-switch {
+  border-color: #cad5e2 !important;
+  background: #eaf0f6 !important;
+}
+
+.vinkora-studio .desktop-destination-panel .mode-switch button,
+.vinkora-studio .editor-inspector .mode-switch button {
+  color: #526176 !important;
+}
+
+.vinkora-studio .desktop-destination-panel .mode-switch button.is-active,
+.vinkora-studio .editor-inspector .mode-switch button.is-active {
+  background: #0b1220 !important;
+  color: #ffffff !important;
+}
+
+.vinkora-studio .desktop-destination-panel .dynamic-fields,
+.vinkora-studio .desktop-destination-panel .muted-panel,
+.vinkora-studio .desktop-destination-panel .result-panel {
+  border-color: #d9e2ed !important;
+  background: transparent !important;
+}
+
+.vinkora-studio .appearance-panel-header {
+  border-bottom-color: #d9e2ed;
+  background: rgba(247, 249, 252, 0.98);
+}
+
+.vinkora-studio .appearance-panel-header > span {
+  color: #0b1220;
+}
+
+.vinkora-studio .appearance-tabs {
+  border-color: #cad5e2;
+  background: #eaf0f6;
+}
+
+.vinkora-studio .appearance-tabs button {
+  color: #526176;
+}
+
+.vinkora-studio .appearance-tabs button.is-active {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.09);
+  color: #0b1220;
+}
+
+.vinkora-studio .desktop-appearance-panel .control-group,
+.vinkora-studio .editor-inspector .control-group {
+  border-color: #d9e2ed !important;
+  background: transparent !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .segmented,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .option-grid,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .export-sizes {
+  border-color: #cad5e2 !important;
+  background: #eaf0f6 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) :is(.segmented button, .option-grid button, .export-sizes button) {
+  border-color: #cad5e2 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) :is(.segmented button, .option-grid button, .export-sizes button).is-active:not(:disabled) {
+  border-color: #0b1220 !important;
+  background: #0b1220 !important;
+  color: #ffffff !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) :is(.segmented button, .option-grid button, .export-sizes button):disabled {
+  border-color: #d6dee8 !important;
+  background: #e8edf3 !important;
+  color: #7a8798 !important;
+  opacity: 1;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) :is(.segmented button, .option-grid button, .export-sizes button):disabled strong {
+  color: #7a8798 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) :is(.toggle-row, .gradient-controls, .color-pair, .color-field, .logo-upload) {
+  border-color: #cad5e2 !important;
+  background: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .toggle-row strong,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .range-stack label,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .color-pair label,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .color-field span {
+  color: #0b1220 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .toggle-row small {
+  color: #69778b !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) input[type="range"] {
+  accent-color: #397fe5;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .secondary-action,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .file-button,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .export-format-grid button,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .preset-list button {
+  border-color: #cad5e2 !important;
+  background: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .secondary-action:disabled {
+  background: #e8edf3 !important;
+  color: #7a8798 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .danger-link {
+  border-top: 1px solid #d9e2ed !important;
+  color: #9f2f37 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .danger-link:disabled {
+  color: #8b98aa !important;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) :is(.range-stack output, .gradient-controls label, .gradient-controls > span, .color-pair span) {
+  color: #334155 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .custom-color {
+  background: #ffffff !important;
+  color: #526176 !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .logo-preview {
+  border-color: #cad5e2 !important;
+  background: #ffffff !important;
+  color: #69778b !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .logo-upload p {
+  color: #69778b !important;
+}
+
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .icon-button,
+.vinkora-studio :is(.desktop-appearance-panel, .editor-inspector) .mobile-panel-close {
+  border-color: #cad5e2 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+}
+
+.vinkora-studio .editor-canvas {
+  background-color: #e9eff6 !important;
+  background-image:
+    linear-gradient(rgba(71, 85, 105, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(71, 85, 105, 0.075) 1px, transparent 1px) !important;
+}
+
+.vinkora-studio .canvas-context {
+  color: #59677a !important;
+}
+
+.vinkora-studio .context-mode {
+  border-color: rgba(14, 143, 133, 0.32) !important;
+  background: #e5f7f4 !important;
+  color: #08776f !important;
+}
+
+.vinkora-studio .scan-status {
+  border-color: #d1dbe7 !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #59677a !important;
+}
+
+@media (max-width: 900px) {
+  .vinkora-studio.editor-shell {
+    background: #e9eff6 !important;
+  }
+
+  .vinkora-studio .mobile-link-panel {
+    border-bottom-color: #d9e2ed !important;
+    background: #f7f9fc !important;
+    color: #0b1220 !important;
+  }
+
+  .vinkora-studio .mobile-url-input,
+  .vinkora-studio .mobile-dynamic-fields input,
+  .vinkora-studio .mobile-dynamic-fields select {
+    border-color: #cad5e2 !important;
+    background: #ffffff !important;
+    color: #0b1220 !important;
+  }
+
+  .vinkora-studio .mobile-mode-switch button {
+    border-color: #cad5e2 !important;
+    background: #ffffff !important;
+    color: #526176 !important;
+  }
+
+  .vinkora-studio .mobile-mode-switch button.is-active {
+    border-color: #0b1220 !important;
+    background: #0b1220 !important;
+    color: #ffffff !important;
+  }
+
+  .vinkora-studio .mobile-feature-note {
+    color: #08776f !important;
+  }
+
+  .vinkora-studio .mobile-dynamic-fields {
+    border-top-color: #d9e2ed !important;
+  }
+
+  .vinkora-studio .mobile-dynamic-fields label > span {
+    color: #526176 !important;
+  }
+
+  .vinkora-studio .mobile-studio-actions {
+    border-top-color: #d9e2ed;
+    background: #f7f9fc;
+    box-shadow: 0 -14px 36px rgba(30, 41, 59, 0.1);
+  }
+
+  .vinkora-studio .mobile-appearance-actions button {
+    border-color: #cad5e2;
+    background: #ffffff;
+    color: #526176;
+  }
+
+  .vinkora-studio .mobile-appearance-actions button.is-active {
+    border-color: #397fe5;
+    color: #255fb5;
+  }
+
+  .vinkora-studio .editor-inspector {
+    border-color: #cad5e2 !important;
+    background: #f7f9fc !important;
+  }
+
+  .vinkora-studio .mobile-sheet-handle {
+    background: #a6b1c0 !important;
+  }
+}
+
+/* Mobile Studio: one clear creation flow and one compact action dock. */
+@media (max-width: 900px) {
+  .vinkora-studio.editor-shell {
+    min-height: 100dvh;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .vinkora-studio .editor-header {
+    min-height: 58px;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    padding: 0 12px !important;
+  }
+
+  .vinkora-studio .header-brand img {
+    width: 118px !important;
+  }
+
+  .vinkora-studio .mobile-history-button {
+    width: 40px;
+    height: 40px;
+    border-color: #263750 !important;
+    background: #0c192a !important;
+  }
+
+  .vinkora-studio .mobile-link-panel {
+    padding: 14px 14px 13px !important;
+  }
+
+  .vinkora-studio .mobile-link-heading {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 11px;
+  }
+
+  .vinkora-studio .mobile-link-heading > div {
+    min-width: 0;
+  }
+
+  .vinkora-studio .mobile-link-heading small,
+  .vinkora-studio .mobile-link-heading strong {
+    display: inline;
+    margin: 0 !important;
+  }
+
+  .vinkora-studio .mobile-link-heading small {
+    color: #08776f !important;
+    font-size: 0.64rem;
+  }
+
+  .vinkora-studio .mobile-link-heading strong {
+    margin-left: 7px !important;
+    color: #0b1220 !important;
+    font-size: 0.9rem;
+  }
+
+  .vinkora-studio .mobile-link-heading > span {
+    flex: 0 0 auto;
+    border: 1px solid #c5d2df;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #526176;
+    padding: 5px 8px;
+    font-size: 0.6rem;
+    font-weight: 780;
+  }
+
+  .vinkora-studio .mobile-mode-switch {
+    gap: 4px;
+    margin-top: 0;
+    border: 1px solid #cad5e2;
+    border-radius: 9px;
+    background: #eaf0f6;
+    padding: 4px;
+  }
+
+  .vinkora-studio .mobile-mode-switch button {
+    min-height: 40px;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    font-size: 0.7rem;
+  }
+
+  .vinkora-studio .mobile-mode-switch button.is-active {
+    border-color: transparent !important;
+    background: #0b1220 !important;
+    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.13);
+  }
+
+  .vinkora-studio .mobile-link-form {
+    grid-template-columns: minmax(0, 1fr) 92px;
+    gap: 7px;
+    margin-top: 10px;
+  }
+
+  .vinkora-studio .mobile-url-input {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 10px;
+  }
+
+  .vinkora-studio .mobile-url-input > svg {
+    width: 17px;
+    height: 17px;
+    color: #7a8798;
+  }
+
+  .vinkora-studio .mobile-url-input input {
+    min-width: 0;
+    padding: 0;
+  }
+
+  .vinkora-studio .mobile-url-input button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .vinkora-studio .mobile-link-form > button {
+    min-height: 48px;
+    border-radius: 8px !important;
+    font-size: 0.76rem;
+  }
+
+  .vinkora-studio .mobile-feature-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 9px 2px 0;
+    line-height: 1.35;
+  }
+
+  .vinkora-studio .mobile-feature-note::before {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #18a99c;
+    content: "";
+  }
+
+  .vinkora-studio .mobile-dynamic-fields {
+    gap: 9px;
+    margin-top: 12px;
+    border: 1px solid #d9e2ed !important;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 11px;
+  }
+
+  .vinkora-studio .mobile-dynamic-fields input,
+  .vinkora-studio .mobile-dynamic-fields select {
+    min-height: 44px;
+  }
+
+  .vinkora-studio .editor-canvas {
+    gap: 8px;
+    padding: 10px 12px 16px !important;
+  }
+
+  .vinkora-studio .editor-workspace,
+  .vinkora-studio .workspace-main {
+    background: #e9eff6 !important;
+  }
+
+  .vinkora-studio .canvas-context {
+    min-height: 38px;
+    border-bottom: 1px solid rgba(100, 116, 139, 0.16) !important;
+    padding: 0 2px 8px !important;
+  }
+
+  .vinkora-studio .qr-paper {
+    width: clamp(248px, calc(100vw - 48px), 318px) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 18px 42px rgba(30, 41, 59, 0.15) !important;
+  }
+
+  .vinkora-studio .mobile-studio-actions {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 70;
+    display: grid !important;
+    min-height: calc(76px + env(safe-area-inset-bottom));
+    grid-template-columns: minmax(0, 1fr) 92px;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid #d5deea;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 -10px 30px rgba(30, 41, 59, 0.11);
+    padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+    backdrop-filter: blur(16px);
+  }
+
+  .vinkora-studio .mobile-appearance-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .vinkora-studio .mobile-appearance-actions button {
+    min-height: 56px;
+    gap: 3px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #657389;
+    padding: 4px 2px;
+    font-size: 0.57rem;
+  }
+
+  .vinkora-studio .mobile-appearance-actions button svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .vinkora-studio .mobile-appearance-actions button.is-active {
+    border-color: transparent;
+    background: #edf0ff;
+    color: #4849c8;
+  }
+
+  .vinkora-studio .mobile-export-action {
+    min-height: 54px;
+    flex-direction: column;
+    gap: 3px;
+    border-radius: 8px !important;
+    padding: 5px;
+    font-size: 0.64rem;
+  }
+
+  .vinkora-studio .mobile-export-action svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .vinkora-studio .mobile-export-action:disabled {
+    background: #e2e8f0 !important;
+    color: #7a8798 !important;
+    filter: none;
+    opacity: 1;
+  }
+
+  .vinkora-studio .mobile-tool-bar {
+    display: none !important;
+  }
+
+  .vinkora-studio .mobile-backdrop {
+    z-index: 89;
+    background: rgba(15, 23, 42, 0.48) !important;
+  }
+
+  .vinkora-studio .editor-inspector {
+    inset: auto 0 0;
+    z-index: 90;
+    max-height: min(calc(100dvh - 70px), 760px);
+    border-radius: 20px 20px 0 0 !important;
+    box-shadow: 0 -20px 60px rgba(15, 23, 42, 0.22);
+  }
+
+  .vinkora-studio .editor-inspector .inspector-content {
+    padding: 30px 16px calc(24px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .vinkora-studio .history-view {
+    min-height: calc(100dvh - 58px);
+    padding-bottom: 24px;
+  }
+}
+
+@media (min-width: 390px) and (max-width: 900px) {
+  .vinkora-studio .mobile-dynamic-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vinkora-studio .mobile-dynamic-slug {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 380px) {
+  .vinkora-studio .mobile-link-panel {
+    padding-right: 10px !important;
+    padding-left: 10px !important;
+  }
+
+  .vinkora-studio .mobile-link-form {
+    grid-template-columns: minmax(0, 1fr) 86px;
+  }
+
+  .vinkora-studio .mobile-link-form > button {
+    width: auto;
+    padding-inline: 7px;
+    font-size: 0.7rem;
+  }
+
+  .vinkora-studio .mobile-link-heading > span {
+    font-size: 0.55rem;
+  }
+}

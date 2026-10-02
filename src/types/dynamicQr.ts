@@ -1,4 +1,5 @@
 import type { QrOptions } from './link'
+import type { DynamicQrCampaignChannel } from '@/config/dynamicQrCampaigns'
 
 export type DynamicQrStatus = 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED'
 
@@ -10,6 +11,7 @@ export type DynamicQrResource = {
   id: string
   slug: string
   name: string
+  campaignChannel: DynamicQrCampaignChannel
   destinationUrl: string
   publicUrl: string
   status: DynamicQrStatus
@@ -37,6 +39,8 @@ export type DynamicQrAnalytics = {
   periodDays: 30
   analyzedScans: number
   estimatedUniqueVisitors: number
+  returningScans: number
+  dataCompleteness: number
   botScans: number
   daily: Array<{
     date: string
@@ -44,8 +48,13 @@ export type DynamicQrAnalytics = {
     uniqueVisitors: number
   }>
   countries: DynamicQrBreakdown[]
+  regions: DynamicQrBreakdown[]
   cities: DynamicQrBreakdown[]
   devices: DynamicQrBreakdown[]
+  operatingSystems: DynamicQrBreakdown[]
   browsers: DynamicQrBreakdown[]
+  languages: DynamicQrBreakdown[]
+  localHours: DynamicQrBreakdown[]
+  localWeekdays: DynamicQrBreakdown[]
   referrers: DynamicQrBreakdown[]
 }

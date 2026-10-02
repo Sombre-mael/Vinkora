@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
       destinationUrl: body.destinationUrl,
       name: body.name,
       slug: body.slug,
+      campaignChannel: body.campaignChannel,
       styleOptions: body.styleOptions,
       deviceToken,
       ipAddress: getClientIp(request.headers),

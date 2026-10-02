@@ -1,4 +1,5 @@
 import type { QrOptions } from '@/types/link'
+import type { DynamicQrCampaignChannel } from '@/config/dynamicQrCampaigns'
 import type {
   DynamicQrAnalytics,
   DynamicQrCreationResponse,
@@ -32,6 +33,7 @@ export async function createDynamicQr(input: {
   destinationUrl: string
   name?: string
   slug?: string
+  campaignChannel?: DynamicQrCampaignChannel
   styleOptions: QrOptions
 }) {
   const response = await fetch('/api/qr-codes', {
@@ -64,6 +66,7 @@ export async function updateDynamicQr(
   updates: {
     destinationUrl?: string
     name?: string
+    campaignChannel?: DynamicQrCampaignChannel
     styleOptions?: QrOptions
     status?: DynamicQrStatus
   },

@@ -46,6 +46,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       {
         destinationUrl: body.destinationUrl,
         name: body.name,
+        campaignChannel: body.campaignChannel,
         styleOptions: body.styleOptions,
         status: body.status,
       },

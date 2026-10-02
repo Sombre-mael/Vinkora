@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { QrOptions, ShortenedLink } from '@/types/link'
+import type { DynamicQrCampaignChannel } from '@/config/dynamicQrCampaigns'
 
 const STORAGE_KEY = 'vinkora-history-v1'
 const LEGACY_STORAGE_KEY = ['link', 'short-history-v1'].join('')
@@ -50,6 +51,7 @@ export const useLinkHistory = () => {
     qrOptions: QrOptions
     kind: 'static' | 'dynamic'
     name?: string
+    campaignChannel?: DynamicQrCampaignChannel
     dynamicQrId?: string
     dynamicSlug?: string
     editToken?: string
@@ -65,6 +67,7 @@ export const useLinkHistory = () => {
         qrOptions: input.qrOptions,
         kind: input.kind,
         name: input.name,
+        campaignChannel: input.campaignChannel,
         dynamicQrId: input.dynamicQrId,
         dynamicSlug: input.dynamicSlug,
         editToken: input.editToken,

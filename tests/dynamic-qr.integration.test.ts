@@ -163,11 +163,19 @@ function assertDisposableDatabase(url: string) {
 function emptyMetadata(isBot: boolean) {
   return {
     visitorHash: isBot ? null : 'v'.repeat(64),
+    dailyVisitorHash: isBot ? null : 'd'.repeat(64),
+    continentCode: 'AF',
     countryCode: 'CD',
+    regionCode: 'HK',
     city: 'Lubumbashi',
+    timezone: 'Africa/Lubumbashi',
+    language: 'fr-cd',
     deviceType: 'Mobile',
+    operatingSystem: 'Android',
     browser: 'Chrome',
     referrerHost: 'example.com',
+    localHour: 12,
+    localWeekday: 5,
     isBot,
   }
 }

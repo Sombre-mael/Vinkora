@@ -6,7 +6,7 @@ export function PublicFooter() {
     <footer className="public-footer">
       <div className="public-container public-footer__grid">
         <div className="public-footer__brand">
-          <Image src="/brand/vinkora-logo.png" alt="Vinkora" width={156} height={42} />
+          <Image src="/brand/vinkora-logo-dark.png" alt="Vinkora" width={156} height={42} />
           <p>Créez. Partagez. Mesurez.</p>
           <span>Une plateforme pensée pour transformer chaque lien en opportunité.</span>
         </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -7,9 +8,13 @@ import {
   AlertTriangle,
   Archive,
   Check,
+  Clock3,
   Copy,
   ExternalLink,
+  Globe2,
   KeyRound,
+  Languages,
+  Laptop,
   LoaderCircle,
   MapPin,
   MonitorSmartphone,
@@ -29,6 +34,11 @@ import {
   updateDynamicQr,
 } from '@/services/dynamicQr'
 import type { DynamicQrAnalytics, DynamicQrResource, DynamicQrStatus } from '@/types/dynamicQr'
+import {
+  DYNAMIC_QR_CHANNELS,
+  getDynamicQrChannelLabel,
+  type DynamicQrCampaignChannel,
+} from '@/config/dynamicQrCampaigns'
 
 const tokenStorageKey = (id: string) => `vinkora-dynamic-qr-key:${id}`
 
@@ -39,6 +49,7 @@ export function DynamicQrManager({ id }: { id: string }) {
   const [analytics, setAnalytics] = useState<DynamicQrAnalytics | null>(null)
   const [destinationUrl, setDestinationUrl] = useState('')
   const [name, setName] = useState('')
+  const [campaignChannel, setCampaignChannel] = useState<DynamicQrCampaignChannel>('UNSPECIFIED')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -56,6 +67,7 @@ export function DynamicQrManager({ id }: { id: string }) {
       setAnalytics(stats)
       setDestinationUrl(resource.destinationUrl)
       setName(resource.name)
+      setCampaignChannel(resource.campaignChannel)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Impossible de charger ce QR dynamique.')
     } finally {
@@ -92,10 +104,15 @@ export function DynamicQrManager({ id }: { id: string }) {
     if (!editToken) return
     setSaving(true)
     try {
-      const updated = await updateDynamicQr(id, editToken, { destinationUrl, name })
+      const updated = await updateDynamicQr(id, editToken, {
+        destinationUrl,
+        name,
+        campaignChannel,
+      })
       setQrCode(updated)
       setDestinationUrl(updated.destinationUrl)
       setName(updated.name)
+      setCampaignChannel(updated.campaignChannel)
       toast.success('Destination mise à jour. Le QR imprimé reste identique.')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'La mise à jour a échoué.')
@@ -160,13 +177,19 @@ export function DynamicQrManager({ id }: { id: string }) {
     <main className="dynamic-manage-page">
       <header className="dynamic-manage-header">
         <Link href="/" className="dynamic-manage-brand">
-          <RefreshCw aria-hidden="true" />
+          <Image
+            src="/brand/vinkora-symbol.png"
+            alt=""
+            width={512}
+            height={512}
+            aria-hidden="true"
+          />
           <span>Vinkora</span>
         </Link>
         <div>
           <span className="dynamic-beta-label">Bêta gratuite hors forfait</span>
           <h1>{qrCode.name}</h1>
-          <p>Modifiez la destination sans réimprimer votre QR.</p>
+          <p>{getDynamicQrChannelLabel(qrCode.campaignChannel)} · Modifiez la destination sans réimprimer votre QR.</p>
         </div>
         <button className="button button--primary" type="button" onClick={openInStudio}>
           Personnaliser dans le Studio
@@ -192,8 +215,18 @@ export function DynamicQrManager({ id }: { id: string }) {
             <div><span>Destination</span><h2>Contenu du QR</h2></div>
             <StatusBadge status={qrCode.status} />
           </div>
-          <label htmlFor="manage-name">Nom</label>
+          <label htmlFor="manage-name">Campagne</label>
           <input id="manage-name" value={name} maxLength={180} onChange={(event) => setName(event.target.value)} />
+          <label htmlFor="manage-channel">Support de diffusion</label>
+          <select
+            id="manage-channel"
+            value={campaignChannel}
+            onChange={(event) => setCampaignChannel(event.target.value as DynamicQrCampaignChannel)}
+          >
+            {DYNAMIC_QR_CHANNELS.map((channel) => (
+              <option key={channel.id} value={channel.id}>{channel.label}</option>
+            ))}
+          </select>
           <label htmlFor="manage-destination">URL de destination</label>
           <input
             id="manage-destination"
@@ -237,6 +270,8 @@ export function DynamicQrManager({ id }: { id: string }) {
         <Metric icon={MousePointerClick} label="Scans valides totaux" value={analytics.totalScans.toLocaleString('fr-FR')} />
         <Metric icon={Activity} label="Scans sur 30 jours" value={analytics.analyzedScans.toLocaleString('fr-FR')} />
         <Metric icon={Users} label="Visiteurs estimés" value={analytics.estimatedUniqueVisitors.toLocaleString('fr-FR')} />
+        <Metric icon={RefreshCw} label="Scans récurrents" value={analytics.returningScans.toLocaleString('fr-FR')} />
+        <Metric icon={Globe2} label="Données identifiées" value={`${analytics.dataCompleteness}%`} />
         <Metric icon={MonitorSmartphone} label="Robots détectés" value={analytics.botScans.toLocaleString('fr-FR')} />
       </section>
 
@@ -250,9 +285,14 @@ export function DynamicQrManager({ id }: { id: string }) {
 
       <section className="dynamic-breakdown-grid">
         <Breakdown title="Pays" icon={MapPin} items={analytics.countries} />
+        <Breakdown title="Régions" icon={MapPin} items={analytics.regions} />
         <Breakdown title="Villes" icon={MapPin} items={analytics.cities} />
         <Breakdown title="Appareils" icon={MonitorSmartphone} items={analytics.devices} />
+        <Breakdown title="Systèmes" icon={Laptop} items={analytics.operatingSystems} />
         <Breakdown title="Navigateurs" icon={Activity} items={analytics.browsers} />
+        <Breakdown title="Langues" icon={Languages} items={analytics.languages} />
+        <Breakdown title="Heures locales" icon={Clock3} items={analytics.localHours} />
+        <Breakdown title="Jours actifs" icon={Clock3} items={analytics.localWeekdays} />
         <Breakdown title="Référents" icon={ExternalLink} items={analytics.referrers} />
       </section>
 
