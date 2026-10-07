@@ -11,15 +11,19 @@ import {
 import { DemoNotice, StatCard } from '@/components/saas/SaasUi'
 import { TrendChart } from '@/components/saas/TrendChart'
 import { demoActivities, demoLinks, demoTrend } from '@/data/saasDemo'
+import { requireCurrentVinkoraUser } from '../../lib/auth/vinkora-user'
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const user = await requireCurrentVinkoraUser()
+  const firstName = (user.profile?.name || user.email.split('@')[0]).split(/\s+/)[0]
+
   return (
     <div className="dashboard-page">
       <DemoNotice />
 
       <section className="dashboard-welcome">
         <div>
-          <span>Bonjour Sombre</span>
+          <span>Bonjour {firstName}</span>
           <h2>Vos liens ont généré 2 819 clics ce mois-ci.</h2>
           <p>Une progression de 18 % par rapport à la période précédente.</p>
         </div>

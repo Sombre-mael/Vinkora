@@ -1640,10 +1640,89 @@
   line-height: 1.6;
 }
 
+.auth-methods {
+  display: grid;
+  gap: 22px;
+  margin-top: 35px;
+}
+
+.google-auth {
+  display: grid;
+  gap: 10px;
+}
+
+.google-auth__button {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #cfd7e4;
+  border-radius: 7px;
+  background: var(--saas-white);
+  color: var(--saas-ink);
+  font-weight: 750;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.google-auth__button:hover:not(:disabled) {
+  border-color: #aeb9c9;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.google-auth__button:focus-visible {
+  outline: 3px solid rgba(91, 92, 226, 0.2);
+  outline-offset: 2px;
+}
+
+.google-auth__button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.google-auth__mark {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid #d7dde7;
+  border-radius: 50%;
+  color: #397fe5;
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+.google-auth__terms {
+  margin: 0;
+  color: var(--saas-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.auth-methods__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--saas-muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.auth-methods__divider::before,
+.auth-methods__divider::after {
+  height: 1px;
+  flex: 1;
+  background: #dde3ec;
+  content: '';
+}
+
 .auth-form {
   display: grid;
   gap: 18px;
-  margin-top: 35px;
 }
 
 .form-field {
@@ -1691,6 +1770,11 @@
   color: var(--saas-indigo);
   font-size: 0.75rem;
   font-weight: 650;
+}
+
+.form-field__label-row small {
+  color: var(--saas-muted);
+  font-size: 0.72rem;
 }
 
 .input-with-icon {
@@ -1962,6 +2046,29 @@
 
 .dashboard-sidebar__profile > svg {
   color: #68758a;
+}
+
+.dashboard-sidebar__sign-out {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border: 1px solid #2b374c;
+  border-radius: 7px;
+  background: transparent;
+  color: #9da9ba;
+  cursor: pointer;
+}
+
+.dashboard-sidebar__sign-out:hover:not(:disabled) {
+  border-color: #526078;
+  color: #ffffff;
+}
+
+.dashboard-sidebar__sign-out:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .dashboard-main {

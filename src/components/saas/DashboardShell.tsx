@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import { SignOutButton } from './SignOutButton'
 
 const navItems = [
   { href: '/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard, exact: true },
@@ -56,7 +57,24 @@ function isCurrent(pathname: string, href: string, exact?: boolean) {
   return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+type DashboardShellProps = {
+  children: React.ReactNode
+  user: {
+    name: string
+    email: string
+  }
+}
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'VK'
+}
+
+export function DashboardShell({ children, user }: DashboardShellProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const page = pageTitles[pathname] ?? pageTitles['/dashboard']
@@ -86,9 +104,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="dashboard-sidebar__workspace">
-          <span className="dashboard-avatar dashboard-avatar--small">VD</span>
+          <span className="dashboard-avatar dashboard-avatar--small">{initials(user.name)}</span>
           <div>
-            <strong>Espace démo</strong>
+            <strong>{user.name}</strong>
             <small>Aucune offre active</small>
           </div>
         </div>
@@ -117,12 +135,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="dashboard-sidebar__profile">
-          <span className="dashboard-avatar">SM</span>
+          <span className="dashboard-avatar">{initials(user.name)}</span>
           <div>
-            <strong>Compte visuel</strong>
-            <small>Session non connectée</small>
+            <strong>{user.name}</strong>
+            <small>{user.email}</small>
           </div>
-          <Settings size={17} aria-hidden="true" />
+          <SignOutButton />
         </div>
       </aside>
 

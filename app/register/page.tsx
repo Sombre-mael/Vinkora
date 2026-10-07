@@ -35,7 +35,7 @@ export default function RegisterPage() {
           <div className="auth-panel__heading">
             <span>Inscription</span>
             <h2>Créer votre espace Vinkora</h2>
-            <p>Ce formulaire présente le futur parcours sans créer de compte réel.</p>
+            <p>Créez votre compte pour accéder à votre espace personnel.</p>
           </div>
           <AuthForm mode="register" />
           <p className="auth-panel__switch">

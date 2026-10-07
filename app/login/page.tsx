@@ -9,7 +9,13 @@ export const metadata: Metadata = {
   description: 'Interface de connexion Vinkora.',
 }
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ status?: string }>
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { status } = await searchParams
+
   return (
     <main className="auth-page">
       <section className="auth-page__brand">
@@ -35,7 +41,12 @@ export default function LoginPage() {
           <div className="auth-panel__heading">
             <span>Connexion</span>
             <h2>Bienvenue sur Vinkora</h2>
-            <p>L’authentification réelle sera activée dans une prochaine phase.</p>
+            <p>Connectez-vous pour retrouver votre espace Vinkora.</p>
+            {status === 'suspended' ? (
+              <p className="form-message form-message--error">
+                Ce compte est suspendu. Contactez l’assistance Vinkora.
+              </p>
+            ) : null}
           </div>
           <AuthForm mode="login" />
           <p className="auth-panel__switch">
