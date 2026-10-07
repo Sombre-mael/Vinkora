@@ -1,12 +1,10 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { NewLinkForm } from '@/components/saas/NewLinkForm'
-import { DemoNotice } from '@/components/saas/SaasUi'
 
 export default function NewLinkPage() {
   return (
     <div className="dashboard-page dashboard-page--narrow">
-      <DemoNotice />
       <Link className="back-link" href="/dashboard/links">
         <ArrowLeft size={16} /> Retour aux liens
       </Link>

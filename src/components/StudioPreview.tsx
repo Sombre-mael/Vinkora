@@ -64,7 +64,7 @@ export function StudioPreview() {
               fgColor="#0B1220"
               level="H"
               marginSize={2}
-              title="QR code de démonstration Vinkora"
+              title="Aperçu QR Vinkora"
               imageSettings={{
                 src: '/brand/vinkora-symbol.png',
                 width: 42,

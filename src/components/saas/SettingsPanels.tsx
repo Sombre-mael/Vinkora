@@ -4,13 +4,22 @@ import { Save } from 'lucide-react'
 import { FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 
-export function SettingsPanels() {
+type SettingsPanelsProps = {
+  user: {
+    name: string
+    email: string
+    company: string
+    city: string
+  }
+}
+
+export function SettingsPanels({ user }: SettingsPanelsProps) {
   const [emailReports, setEmailReports] = useState(true)
   const [productNews, setProductNews] = useState(false)
 
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    toast.info('Préférences modifiées dans cet aperçu uniquement.')
+    toast.info('La sauvegarde du profil sera disponible dans une prochaine mise à jour.')
   }
 
   return (
@@ -28,7 +37,7 @@ export function SettingsPanels() {
         <div className="settings-fields">
           <div className="form-field">
             <label htmlFor="settings-name">Nom complet</label>
-            <input id="settings-name" defaultValue="Sombre Mael" />
+            <input id="settings-name" defaultValue={user.name} />
           </div>
           <div className="form-field">
             <label htmlFor="settings-company">Entreprise</label>
@@ -36,11 +45,11 @@ export function SettingsPanels() {
           </div>
           <div className="form-field">
             <label htmlFor="settings-email">Adresse e-mail</label>
-            <input id="settings-email" type="email" defaultValue="demo@vinkora.app" />
+            <input id="settings-email" type="email" defaultValue={user.email} readOnly />
           </div>
           <div className="form-field">
             <label htmlFor="settings-city">Ville</label>
-            <input id="settings-city" defaultValue="Lubumbashi" />
+            <input id="settings-city" defaultValue={user.city} />
           </div>
         </div>
       </form>

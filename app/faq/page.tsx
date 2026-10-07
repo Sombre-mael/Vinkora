@@ -15,7 +15,7 @@ const questions = [
   ['Les liens courts sont-ils disponibles maintenant ?', 'Ils sont réservés à la prochaine phase avec authentification et droit actif. Les créations anonymes sont actuellement refusées.'],
   ['Quels formats puis-je télécharger ?', 'Le Studio propose des exports PNG et SVG adaptés au web et à l’impression légère.'],
   ['Le paiement Mobile Money est-il déjà actif ?', 'Non. Il est prévu pour le lancement commercial, avec une validation manuelle sécurisée dans un premier temps.'],
-  ['Que montrent les pages du dashboard ?', 'Il s’agit pour le moment d’un aperçu d’interface utilisant des données de démonstration clairement signalées.'],
+  ['Que montrent les pages du dashboard ?', 'Votre espace affiche uniquement les données réellement associées à votre compte. Les indicateurs apparaîtront après la création de vos premières ressources.'],
   ['Mes anciens QR continueront-ils à fonctionner ?', 'Les QR statiques exportés sont autonomes. Les anciens liens déjà diffusés conservent également leur route de redirection.'],
 ]
 

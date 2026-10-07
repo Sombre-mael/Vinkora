@@ -1,7 +1,5 @@
 import Image from 'next/image'
-import { BarChart3, Link2, MousePointerClick, MoreHorizontal, TrendingUp } from 'lucide-react'
-
-const bars = [36, 52, 43, 68, 58, 82, 74]
+import { BarChart3, Link2, MousePointerClick, QrCode } from 'lucide-react'
 
 export function DashboardPreview() {
   return (
@@ -22,50 +20,43 @@ export function DashboardPreview() {
         <div className="dashboard-preview__header">
           <div>
             <span>Vue d’ensemble</span>
-            <strong>Bonjour, bienvenue sur Vinkora</strong>
+            <strong>Votre espace Vinkora</strong>
           </div>
-          <span className="dashboard-preview__avatar">SM</span>
+          <span className="dashboard-preview__avatar">VK</span>
         </div>
         <div className="dashboard-preview__stats">
           <div>
             <span>Liens actifs</span>
-            <strong>24</strong>
-            <small>
-              <TrendingUp size={12} /> +12 %
-            </small>
+            <strong>—</strong>
+            <small>En attente de données</small>
           </div>
           <div>
             <span>Clics ce mois</span>
-            <strong>2 819</strong>
-            <small>
-              <TrendingUp size={12} /> +18 %
-            </small>
+            <strong>—</strong>
+            <small>Aucun clic enregistré</small>
           </div>
           <div>
-            <span>Taux mobile</span>
-            <strong>72 %</strong>
-            <small>Sur tous les clics</small>
+            <span>QR dynamiques</span>
+            <strong>—</strong>
+            <small>Prêts à être créés</small>
           </div>
         </div>
         <div className="dashboard-preview__content">
           <div className="dashboard-preview__chart">
             <span>Évolution des clics</span>
-            <div>
-              {bars.map((height, index) => (
-                <i key={index} style={{ height: `${height}%` }} />
-              ))}
+            <div className="dashboard-preview__empty">
+              <BarChart3 size={24} aria-hidden="true" />
+              <strong>Votre activité apparaîtra ici</strong>
+              <small>Les premières données seront affichées après vos premiers clics.</small>
             </div>
           </div>
           <div className="dashboard-preview__list">
-            <span>Liens performants</span>
-            {['Menu été 2026', 'Instagram juillet', 'Catalogue'].map((label, index) => (
-              <div key={label}>
-                <i>{index + 1}</i>
-                <b>{label}</b>
-                <small>{[1248, 863, 291][index]} clics</small>
-                <MoreHorizontal size={14} />
-              </div>
-            ))}
+            <span>Vos ressources</span>
+            <div className="dashboard-preview__empty">
+              <QrCode size={24} aria-hidden="true" />
+              <strong>Aucun QR créé</strong>
+              <small>Créez votre première ressource depuis le Studio.</small>
+            </div>
           </div>
         </div>
       </div>

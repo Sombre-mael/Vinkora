@@ -1,12 +1,20 @@
 import { KeyRound, ShieldCheck } from 'lucide-react'
-import { DemoNotice } from '@/components/saas/SaasUi'
 import { SettingsPanels } from '@/components/saas/SettingsPanels'
+import { requireCurrentVinkoraUser } from '../../../lib/auth/vinkora-user'
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const user = await requireCurrentVinkoraUser()
+
   return (
     <div className="dashboard-page dashboard-page--settings">
-      <DemoNotice />
-      <SettingsPanels />
+      <SettingsPanels
+        user={{
+          name: user.profile?.name ?? '',
+          email: user.email,
+          company: user.profile?.company ?? '',
+          city: user.profile?.city ?? '',
+        }}
+      />
       <section className="security-preview">
         <span><ShieldCheck size={21} /></span>
         <div>

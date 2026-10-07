@@ -4,6 +4,7 @@ import {
   Check,
   Copy,
   ExternalLink,
+  Link2,
   MoreHorizontal,
   Pause,
   Play,
@@ -12,12 +13,25 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import type { DemoLink, DemoLinkStatus } from '@/data/saasDemo'
-import { Badge } from './SaasUi'
+import { Badge, EmptyState } from './SaasUi'
 
-type Filter = 'all' | DemoLinkStatus
+export type DashboardLinkStatus = 'active' | 'paused'
 
-export function LinksManager({ initialLinks }: { initialLinks: DemoLink[] }) {
+export type DashboardLink = {
+  id: string
+  title: string
+  slug: string
+  shortUrl: string
+  destination: string
+  clicks: number
+  status: DashboardLinkStatus
+  createdAt: string
+  trend: number
+}
+
+type Filter = 'all' | DashboardLinkStatus
+
+export function LinksManager({ initialLinks }: { initialLinks: DashboardLink[] }) {
   const [links, setLinks] = useState(initialLinks)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
@@ -36,7 +50,7 @@ export function LinksManager({ initialLinks }: { initialLinks: DemoLink[] }) {
     })
   }, [filter, links, query])
 
-  async function copyLink(link: DemoLink) {
+  async function copyLink(link: DashboardLink) {
     try {
       await navigator.clipboard.writeText(`https://${link.shortUrl}`)
       setCopiedId(link.id)
@@ -55,7 +69,19 @@ export function LinksManager({ initialLinks }: { initialLinks: DemoLink[] }) {
           : link,
       ),
     )
-    toast.info('État modifié dans cet aperçu uniquement.')
+    toast.info('La gestion des liens sera disponible avec la connexion au backend.')
+  }
+
+  if (!links.length) {
+    return (
+      <EmptyState
+        icon={Link2}
+        title="Aucun lien dans votre espace"
+        description="Vos liens courts et QR dynamiques apparaîtront ici après leur création."
+        actionLabel="Créer un lien"
+        actionHref="/dashboard/links/new"
+      />
+    )
   }
 
   return (

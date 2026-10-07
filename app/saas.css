@@ -748,7 +748,7 @@
   align-items: center;
   gap: 4px;
   margin-top: 7px;
-  color: var(--saas-success);
+  color: var(--saas-muted);
   font-size: 0.64rem;
 }
 
@@ -815,6 +815,32 @@
 .dashboard-preview__list small {
   color: var(--saas-muted);
   font-size: 0.61rem;
+}
+
+.dashboard-preview__empty {
+  display: grid !important;
+  height: 160px !important;
+  align-content: center !important;
+  justify-items: center;
+  gap: 7px !important;
+  margin-top: 16px !important;
+  border: 0 !important;
+  color: var(--saas-muted);
+  text-align: center;
+}
+
+.dashboard-preview__empty svg {
+  color: var(--saas-indigo);
+}
+
+.dashboard-preview__empty strong {
+  color: var(--saas-ink);
+  font-size: 0.72rem;
+}
+
+.dashboard-preview__empty small {
+  max-width: 190px;
+  line-height: 1.45;
 }
 
 .product-preview__caption {
@@ -1688,11 +1714,11 @@
   width: 24px;
   height: 24px;
   place-items: center;
-  border: 1px solid #d7dde7;
-  border-radius: 50%;
-  color: #397fe5;
-  font-size: 0.88rem;
-  font-weight: 850;
+}
+
+.google-auth__mark svg {
+  width: 21px;
+  height: 21px;
 }
 
 .google-auth__terms {
@@ -2155,25 +2181,6 @@
 
 .dashboard-page--narrow {
   width: min(840px, 100%);
-}
-
-.demo-notice {
-  display: flex;
-  min-height: 40px;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid #d9dcff;
-  border-radius: 7px;
-  background: #f2f2ff;
-  padding: 8px 12px;
-  color: var(--saas-indigo-dark);
-  font-size: 0.76rem;
-  font-weight: 720;
-}
-
-.demo-notice__detail {
-  color: #6b718f;
-  font-weight: 500;
 }
 
 .dashboard-welcome {
@@ -3998,8 +4005,6 @@
   .dashboard-header__actions .button { width: 42px; height: 42px; padding: 0; }
   .dashboard-header__actions .button span { display: none; }
   .dashboard-content { padding: 18px 14px 90px; }
-  .demo-notice { align-items: flex-start; }
-  .demo-notice__detail { display: none; }
   .dashboard-welcome { align-items: flex-start; flex-direction: column; }
   .dashboard-welcome .button { width: 100%; }
   .stats-grid,

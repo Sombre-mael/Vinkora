@@ -113,7 +113,7 @@ export default function HomePage() {
             </div>
             <DashboardPreview />
             <p className="product-preview__caption">
-              Aperçu de l’interface. Les données affichées sont fictives.
+              Un espace clair pour retrouver vos ressources et leurs performances.
             </p>
           </div>
         </section>

@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   applicationName: 'Vinkora',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/icons/favicon-64.png',
-    apple: '/icons/icon-192.png',
+    icon: '/icons/favicon-64.png?v=2',
+    apple: '/icons/icon-192.png?v=2',
   },
 }
 

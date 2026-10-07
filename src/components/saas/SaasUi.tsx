@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import Link from 'next/link'
-import { ArrowRight, FlaskConical } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 type BadgeProps = {
   children: React.ReactNode
@@ -53,16 +53,6 @@ export function SectionHeading({ eyebrow, title, description, action }: SectionH
         {description ? <p>{description}</p> : null}
       </div>
       {action ? <div className="section-heading__action">{action}</div> : null}
-    </div>
-  )
-}
-
-export function DemoNotice() {
-  return (
-    <div className="demo-notice" role="note">
-      <FlaskConical size={17} aria-hidden="true" />
-      <span>Données de démonstration</span>
-      <span className="demo-notice__detail">La connexion au compte arrive dans une prochaine phase.</span>
     </div>
   )
 }

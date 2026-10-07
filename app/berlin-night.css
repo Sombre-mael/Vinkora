@@ -1555,3 +1555,180 @@
     background: #ffffff;
   }
 }
+
+/* Dashboard reading layer: keep the navy navigation, but use light work surfaces. */
+.dashboard-shell {
+  background: #f5f7fb;
+  color: #0b1220;
+}
+
+.dashboard-main,
+.dashboard-content {
+  background: #f5f7fb;
+}
+
+.dashboard-header {
+  border-bottom-color: #dce4ee;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.dashboard-header__title h1,
+.dashboard-welcome h2,
+.dashboard-panel__head h2,
+.section-heading h2,
+.new-link-intro h2,
+.settings-section h2,
+.billing-current strong,
+.form-section__heading h2,
+.link-preview strong,
+.empty-state h3 {
+  color: #0b1220 !important;
+}
+
+.dashboard-header__title p,
+.dashboard-welcome p,
+.dashboard-panel__head span,
+.section-heading p,
+.stat-card__detail,
+.top-links small,
+.activity-list small,
+.links-table__row,
+.billing-current p,
+.settings-section p,
+.form-section__heading p,
+.empty-state p,
+.security-preview p {
+  color: #526176 !important;
+}
+
+.dashboard-search,
+.dashboard-shell :is(.form-field input, .form-field select, .input-with-icon, .slug-field, .links-toolbar__search) {
+  border-color: #cfd9e5;
+  background: #ffffff;
+  color: #0b1220;
+}
+
+.dashboard-shell input,
+.dashboard-shell select {
+  color: #0b1220;
+}
+
+.dashboard-shell input::placeholder {
+  color: #64748b;
+}
+
+.dashboard-shell .icon-button {
+  border-color: #cfd9e5;
+  background: #ffffff;
+  color: #263247;
+}
+
+.dashboard-shell .icon-button:hover:not(:disabled) {
+  border-color: #5b5ce2;
+  background: #f4f5ff;
+  color: #4849c8;
+}
+
+.dashboard-welcome,
+.stat-card,
+.dashboard-panel,
+.links-table,
+.form-section,
+.link-preview,
+.billing-current,
+.settings-section,
+.security-preview,
+.dashboard-shell .catalog-plan,
+.dashboard-shell .empty-state {
+  border-color: #d7e0ea;
+  background: #ffffff;
+  color: #0b1220;
+  box-shadow: 0 10px 28px rgba(38, 50, 71, 0.06);
+}
+
+.stat-card__top > span:first-child,
+.catalog-plan__quotas span,
+.catalog-plan__quotas small,
+.catalog-plan__duration,
+.catalog-plan__limits > strong,
+.catalog-plan__terms dt,
+.catalog-plan__cta > small,
+.links-table__clicks span,
+.links-table__identity small,
+.links-table__empty span {
+  color: #526176 !important;
+}
+
+.stat-card > strong,
+.panel-kpi,
+.top-links b,
+.activity-list strong,
+.links-table__identity strong,
+.links-table__clicks strong {
+  color: #0b1220 !important;
+}
+
+.dashboard-shell .stat-card__icon,
+.dashboard-shell .billing-current__icon,
+.dashboard-shell .empty-state__icon {
+  background: #eaf7f5;
+  color: #087b73;
+}
+
+.dashboard-shell .catalog-plan__topline,
+.dashboard-shell .catalog-plan__duration svg,
+.dashboard-shell .catalog-plan__terms dt,
+.dashboard-shell .catalog-plan__quotas strong {
+  color: #4849c8 !important;
+}
+
+.dashboard-shell .catalog-plan__topline small {
+  background: #e8e9ff;
+  color: #3f40b8 !important;
+}
+
+.dashboard-shell .catalog-plan__heading h3,
+.dashboard-shell .catalog-plan__price,
+.dashboard-shell .catalog-plan__prices strong,
+.dashboard-shell .catalog-plan__duration strong {
+  color: #0b1220 !important;
+}
+
+.dashboard-shell .catalog-plan__heading p,
+.dashboard-shell .catalog-plan__features li,
+.dashboard-shell .catalog-plan__limits li,
+.dashboard-shell .catalog-plan__terms dd {
+  color: #263247 !important;
+}
+
+.dashboard-shell .catalog-plan__heading,
+.dashboard-shell .catalog-plan__duration,
+.dashboard-shell .catalog-plan__quotas,
+.dashboard-shell .catalog-plan__limits,
+.dashboard-shell .catalog-plan__terms,
+.dashboard-shell .links-table__head,
+.dashboard-shell .links-table__row,
+.dashboard-shell .top-links > div,
+.dashboard-shell .activity-list > div,
+.dashboard-shell .settings-section__head,
+.dashboard-shell .security-preview,
+.dashboard-shell .new-link-form__footer {
+  border-color: #dce4ee;
+}
+
+.dashboard-shell .dashboard-mobile-nav {
+  border-top-color: #dce4ee !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+}
+
+.dashboard-shell .dashboard-mobile-nav a {
+  color: #526176 !important;
+}
+
+.dashboard-shell .dashboard-mobile-nav a.is-active {
+  color: #4849c8 !important;
+}
+
+.dashboard-shell .dashboard-mobile-nav a.is-active::before {
+  background: #5b5ce2 !important;
+}

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { authClient } from '../../../lib/auth/client'
 
 const navItems = [
   { href: '/features', label: 'Fonctionnalités' },
@@ -15,6 +16,10 @@ const navItems = [
 export function PublicNav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const { data: session, isPending: sessionPending } = authClient.useSession()
+  const isAuthenticated = Boolean(session?.user)
+  const accountLabel = sessionPending ? 'Vérification…' : isAuthenticated ? 'Mon espace' : 'Se connecter'
+  const accountHref = isAuthenticated ? '/dashboard' : '/login'
 
   return (
     <header className="public-nav">
@@ -43,8 +48,8 @@ export function PublicNav() {
         </nav>
 
         <div className="public-nav__actions">
-          <Link className="button button--ghost" href="/login">
-            Se connecter
+          <Link className="button button--ghost" href={accountHref}>
+            {accountLabel}
           </Link>
           <Link className="button button--primary" href="/studio">
             Ouvrir le Studio
@@ -74,7 +79,9 @@ export function PublicNav() {
               {item.label}
             </Link>
           ))}
-          <Link href="/login" onClick={() => setOpen(false)}>Se connecter</Link>
+          <Link href={accountHref} onClick={() => setOpen(false)}>
+            {accountLabel}
+          </Link>
           <Link className="button button--primary" href="/studio" onClick={() => setOpen(false)}>
             Ouvrir le Studio
           </Link>
