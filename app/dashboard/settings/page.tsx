@@ -1,6 +1,7 @@
 import { ShieldCheck } from 'lucide-react'
 import { SettingsPanels } from '@/components/saas/SettingsPanels'
 import { requireCurrentVinkoraUser } from '../../../lib/auth/vinkora-user'
+import { profilePreferences } from '../../../lib/personalization'
 
 export default async function SettingsPage() {
   const user = await requireCurrentVinkoraUser()
@@ -14,6 +15,7 @@ export default async function SettingsPage() {
           company: user.profile?.company ?? '',
           city: user.profile?.city ?? '',
         }}
+        preferences={profilePreferences(user.profile)}
       />
       <section className="security-preview">
         <span><ShieldCheck size={21} /></span>

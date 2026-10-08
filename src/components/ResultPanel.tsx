@@ -4,12 +4,13 @@ import type { ShortenResult } from '@/hooks/useUrlShortener'
 type ResultPanelProps = {
   result: ShortenResult | null
   copied: boolean
+  activityMessage?: string
   onCopy: () => void
   onSaveStyle?: () => void
   savingStyle?: boolean
 }
 
-export function ResultPanel({ result, copied, onCopy, onSaveStyle, savingStyle }: ResultPanelProps) {
+export function ResultPanel({ result, copied, activityMessage, onCopy, onSaveStyle, savingStyle }: ResultPanelProps) {
   if (!result) {
     return (
       <section className="tool-panel muted-panel">
@@ -26,7 +27,7 @@ export function ResultPanel({ result, copied, onCopy, onSaveStyle, savingStyle }
   const label = isDynamic ? 'Adresse dynamique' : 'Lien original'
 
   return (
-    <section className="tool-panel result-panel">
+    <section className="tool-panel result-panel is-revealed">
       <div className="section-heading">
         <div>
           <p className="eyebrow">{label}</p>
@@ -45,6 +46,13 @@ export function ResultPanel({ result, copied, onCopy, onSaveStyle, savingStyle }
         {copied ? 'Copié' : 'Copier'}
       </button>
 
+      {activityMessage ? (
+        <p className="studio-activity-feedback" role="status" aria-live="polite">
+          <Check size={16} aria-hidden="true" />
+          {activityMessage}
+        </p>
+      ) : null}
+
       {isDynamic && result.manageUrl ? (
         <div className="dynamic-result-actions">
           <a className="secondary-action" href={result.manageUrl}>
@@ -61,7 +69,9 @@ export function ResultPanel({ result, copied, onCopy, onSaveStyle, savingStyle }
               <code>{result.editToken}</code>
             </details>
           ) : null}
-          <p>Conservez le lien de gestion : Vinkora ne peut pas récupérer votre clé secrète.</p>
+          {result.editToken ? (
+            <p>Conservez le lien de gestion : Vinkora ne peut pas récupérer votre clé secrète.</p>
+          ) : null}
         </div>
       ) : null}
     </section>

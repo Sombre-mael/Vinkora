@@ -7,9 +7,10 @@ type ChartPoint = {
 
 export function TrendChart({ data }: { data: readonly ChartPoint[] }) {
   const max = Math.max(...data.map((point) => point.value), 1)
+  const chartStyle = { '--chart-columns': data.length } as CSSProperties
 
   return (
-    <div className="trend-chart" role="img" aria-label="Graphique d’évolution des clics sur sept jours">
+    <div className="trend-chart" style={chartStyle} role="img" aria-label="Graphique d’évolution des scans">
       <div className="trend-chart__plot">
         {data.map((point) => {
           const height = Math.max(10, Math.round((point.value / max) * 100))

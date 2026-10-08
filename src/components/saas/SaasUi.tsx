@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import type { JourneyStage } from '../../../lib/personalization'
 
 type BadgeProps = {
   children: React.ReactNode
@@ -86,5 +87,37 @@ export function EmptyState({
         </Link>
       ) : null}
     </div>
+  )
+}
+
+const journeySteps: readonly { stage: JourneyStage; label: string }[] = [
+  { stage: 'ACCOUNT_READY', label: 'Compte prêt' },
+  { stage: 'QR_CREATED', label: 'QR créé' },
+  { stage: 'FIRST_SCAN', label: 'Premier scan' },
+]
+
+export function JourneyProgress({
+  completedSteps,
+}: {
+  completedSteps: number
+}) {
+  return (
+    <ol className="journey-progress" aria-label="Progression de votre espace Vinkora">
+      {journeySteps.map((step, index) => {
+        const stepNumber = index + 1
+        const state = stepNumber < completedSteps
+          ? 'completed'
+          : stepNumber === completedSteps
+            ? 'current'
+            : 'upcoming'
+
+        return (
+          <li className={`journey-progress__step is-${state}`} key={step.stage}>
+            <span aria-hidden="true">{stepNumber}</span>
+            <strong>{step.label}</strong>
+          </li>
+        )
+      })}
+    </ol>
   )
 }

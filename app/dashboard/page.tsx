@@ -6,7 +6,8 @@ import {
   QrCode,
   TrendingUp,
 } from 'lucide-react'
-import { EmptyState } from '@/components/saas/SaasUi'
+import { EmptyState, JourneyProgress } from '@/components/saas/SaasUi'
+import { deriveJourneySummary } from '../../lib/personalization'
 import { requireCurrentVinkoraUser } from '../../lib/auth/vinkora-user'
 import { getPrisma } from '../../lib/prisma'
 
@@ -26,20 +27,23 @@ export default async function DashboardPage() {
       lastClickedAt: true,
     },
   })
+  const journey = deriveJourneySummary(qrCode)
 
   return (
     <div className="dashboard-page">
       <section className="dashboard-welcome">
         <div>
-          <span>Bonjour {firstName}</span>
-          <h2>Votre espace Vinkora est prêt.</h2>
-          <p>Créez votre première ressource pour commencer à suivre votre activité.</p>
+          <span>Bonjour {firstName} · {journey.eyebrow}</span>
+          <h2>{journey.title}</h2>
+          <p>{journey.description}</p>
         </div>
-        <Link className="button button--primary" href="/studio">
+        <Link className="button button--primary" href={journey.actionHref}>
           <QrCode size={18} />
-          Ouvrir le Studio
+          {journey.actionLabel}
         </Link>
       </section>
+
+      <JourneyProgress completedSteps={journey.completedSteps} />
 
       <section className="dashboard-grid dashboard-grid--main">
         <article className="dashboard-panel">
@@ -71,8 +75,6 @@ export default async function DashboardPage() {
               icon={QrCode}
               title="Aucune ressource créée"
               description="Votre QR dynamique apparaîtra ici après sa création."
-              actionLabel="Ouvrir le Studio"
-              actionHref="/studio"
             />
           )}
         </article>

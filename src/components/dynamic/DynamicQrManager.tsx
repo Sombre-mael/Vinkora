@@ -42,7 +42,7 @@ import {
 
 const tokenStorageKey = (id: string) => `vinkora-dynamic-qr-key:${id}`
 
-export function DynamicQrManager({ id }: { id: string }) {
+export function DynamicQrManager({ id, embedded = false }: { id: string; embedded?: boolean }) {
   const router = useRouter()
   const [editToken] = useState(() => readBrowserEditToken(id))
   const [qrCode, setQrCode] = useState<DynamicQrResource | null>(null)
@@ -54,6 +54,7 @@ export function DynamicQrManager({ id }: { id: string }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState<'public' | 'manage' | null>(null)
+  const [feedback, setFeedback] = useState('')
 
   const load = useCallback(async (token?: string) => {
     setLoading(true)
@@ -106,6 +107,7 @@ export function DynamicQrManager({ id }: { id: string }) {
       setDestinationUrl(updated.destinationUrl)
       setName(updated.name)
       setCampaignChannel(updated.campaignChannel)
+      setFeedback('Destination enregistrée. Votre QR imprimé reste identique.')
       toast.success('Destination mise à jour. Le QR imprimé reste identique.')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'La mise à jour a échoué.')
@@ -119,7 +121,9 @@ export function DynamicQrManager({ id }: { id: string }) {
     try {
       const updated = await updateDynamicQr(id, editToken || undefined, { status })
       setQrCode(updated)
-      toast.success(status === 'ACTIVE' ? 'QR réactivé.' : status === 'SUSPENDED' ? 'QR suspendu.' : 'QR archivé.')
+      const message = status === 'ACTIVE' ? 'QR réactivé.' : status === 'SUSPENDED' ? 'QR suspendu.' : 'QR archivé.'
+      setFeedback(message)
+      toast.success(message)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Le changement d’état a échoué.')
     } finally {
@@ -131,6 +135,7 @@ export function DynamicQrManager({ id }: { id: string }) {
     try {
       await navigator.clipboard.writeText(value)
       setCopied(type)
+      setFeedback(type === 'manage' ? 'Lien de gestion copié.' : 'Lien public copié.')
       window.setTimeout(() => setCopied(null), 1500)
       toast.success(type === 'manage' ? 'Lien de gestion copié.' : 'Lien public copié.')
     } catch {
@@ -146,38 +151,40 @@ export function DynamicQrManager({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <main className="dynamic-manage-page dynamic-manage-state">
+      <div className={`dynamic-manage-page dynamic-manage-state${embedded ? ' is-embedded' : ''}`}>
         <LoaderCircle className="spin" aria-hidden="true" />
         <h1>Chargement de votre QR dynamique</h1>
         <p>Ouverture de votre espace de gestion.</p>
-      </main>
+      </div>
     )
   }
 
   if (error || !qrCode || !analytics) {
     return (
-      <main className="dynamic-manage-page dynamic-manage-state">
+      <div className={`dynamic-manage-page dynamic-manage-state${embedded ? ' is-embedded' : ''}`}>
         <AlertTriangle aria-hidden="true" />
         <h1>Accès au QR impossible</h1>
         <p>{error || 'Ce QR dynamique est introuvable.'}</p>
         <Link className="button button--primary" href="/studio">Retour au Studio</Link>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="dynamic-manage-page">
+    <div className={`dynamic-manage-page${embedded ? ' is-embedded' : ''}`}>
       <header className="dynamic-manage-header">
-        <Link href="/" className="dynamic-manage-brand">
-          <Image
-            src="/brand/vinkora-symbol.png"
-            alt=""
-            width={512}
-            height={512}
-            aria-hidden="true"
-          />
-          <span>Vinkora</span>
-        </Link>
+        {!embedded ? (
+          <Link href="/" className="dynamic-manage-brand">
+            <Image
+              src="/brand/vinkora-symbol.png"
+              alt=""
+              width={512}
+              height={512}
+              aria-hidden="true"
+            />
+            <span>Vinkora</span>
+          </Link>
+        ) : null}
         <div>
           <span className="dynamic-beta-label">QR dynamique du compte</span>
           <h1>{qrCode.name}</h1>
@@ -187,6 +194,12 @@ export function DynamicQrManager({ id }: { id: string }) {
           Personnaliser dans le Studio
         </button>
       </header>
+
+      {feedback ? (
+        <p className="dynamic-inline-feedback" role="status" aria-live="polite">
+          <Check size={17} aria-hidden="true" /> {feedback}
+        </p>
+      ) : null}
 
       <section className="dynamic-link-bar" aria-label="Liens du QR dynamique">
         <div>
@@ -296,7 +309,7 @@ export function DynamicQrManager({ id }: { id: string }) {
         <p>Données détaillées conservées 30 jours. Aucune adresse IP brute ni User-Agent complet n’est stocké.</p>
         <Link href="/privacy">Confidentialité</Link>
       </footer>
-    </main>
+    </div>
   )
 }
 

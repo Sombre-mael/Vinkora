@@ -5,6 +5,7 @@ import {
   requireCurrentVinkoraUser,
   SuspendedUserError,
 } from '../../lib/auth/vinkora-user'
+import { profilePreferences } from '../../lib/personalization'
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +33,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const displayName = user.profile?.name || user.email.split('@')[0]
 
   return (
-    <DashboardShell user={{ name: displayName, email: user.email }}>
+    <DashboardShell
+      user={{ name: displayName, email: user.email, company: user.profile?.company }}
+      preferences={profilePreferences(user.profile)}
+    >
       {children}
     </DashboardShell>
   )

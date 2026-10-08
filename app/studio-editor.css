@@ -1,5 +1,7 @@
 /* Dedicated Studio layout. Kept separate from the public SaaS surfaces. */
 .vinkora-studio {
+  --studio-accent: #5b5ce2;
+  --studio-accent-soft: #eff0ff;
   --studio-bg: #050b14;
   --studio-surface: #081322;
   --studio-surface-raised: #0c192a;
@@ -13,6 +15,16 @@
   --studio-gradient: linear-gradient(135deg, #6b4dff 0%, #397fe5 54%, #18c7b7 100%);
   background: var(--studio-bg) !important;
   color: var(--studio-text);
+}
+
+.vinkora-studio[data-accent="teal"] {
+  --studio-accent: #0f9f94;
+  --studio-accent-soft: #e7faf7;
+}
+
+.vinkora-studio[data-accent="blue"] {
+  --studio-accent: #397fe5;
+  --studio-accent-soft: #eaf3ff;
 }
 
 .vinkora-studio * {
@@ -63,9 +75,46 @@
 .vinkora-studio .primary-action,
 .vinkora-studio .mobile-export-action {
   border: 0 !important;
-  background: var(--studio-gradient) !important;
+  background: var(--studio-accent) !important;
   box-shadow: 0 10px 28px rgba(57, 127, 229, 0.2) !important;
   color: #ffffff !important;
+}
+
+.vinkora-studio .result-panel.is-revealed {
+  animation: studio-result-reveal 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vinkora-studio .result-panel.is-revealed .panel-icon.success {
+  animation: studio-success-confirm 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.studio-activity-feedback {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  border-left: 3px solid #0e9f6e;
+  background: #ecfbf6;
+  padding: 9px 11px;
+  color: #087452 !important;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.studio-loading-shell {
+  min-height: 100vh;
+  background: #eef2f7;
+  padding: clamp(24px, 5vw, 72px);
+}
+
+@keyframes studio-result-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes studio-success-confirm {
+  from { opacity: 0; transform: scale(0.65) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
 }
 
 .vinkora-studio .export-button:disabled,

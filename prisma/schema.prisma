@@ -16,6 +16,23 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum InterfaceAccent {
+  INDIGO
+  TEAL
+  BLUE
+}
+
+enum InterfaceDensity {
+  COMFORTABLE
+  COMPACT
+}
+
+enum InterfaceMotion {
+  SYSTEM
+  EXPRESSIVE
+  REDUCED
+}
+
 enum PlanType {
   PASS
   SUBSCRIPTION
@@ -136,6 +153,10 @@ model Profile {
   phoneLast4     String? @db.VarChar(4)
   company        String? @db.VarChar(160)
   city           String? @db.VarChar(120)
+
+  interfaceAccent  InterfaceAccent  @default(INDIGO)
+  interfaceDensity InterfaceDensity @default(COMFORTABLE)
+  interfaceMotion  InterfaceMotion  @default(SYSTEM)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

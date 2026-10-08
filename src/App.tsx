@@ -37,6 +37,10 @@ import { useQrCustomization } from '@/hooks/useQrCustomization'
 import { type QrCreationMode, useUrlShortener } from '@/hooks/useUrlShortener'
 import { readDynamicQrStudioTransfer, updateDynamicQr } from '@/services/dynamicQr'
 import type { ShortenedLink } from '@/types/link'
+import {
+  DEFAULT_INTERFACE_PREFERENCES,
+  type InterfacePreferences,
+} from '../lib/personalization'
 
 type EditorTool = 'link' | QrEditorTool | 'history'
 
@@ -68,7 +72,11 @@ const copyToClipboard = async (text: string) => {
   await navigator.clipboard.writeText(text)
 }
 
-function App() {
+function App({
+  preferences = DEFAULT_INTERFACE_PREFERENCES,
+}: {
+  preferences?: InterfacePreferences
+}) {
   const router = useRouter()
   const { data: session, isPending: sessionPending } = authClient.useSession()
   const isAuthenticated = Boolean(session?.user)
@@ -82,6 +90,7 @@ function App() {
   const [activeTool, setActiveTool] = useState<EditorTool>('link')
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false)
   const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const [activityMessage, setActivityMessage] = useState('')
   const qrStudioRef = useRef<QrStudioHandle | null>(null)
   const workspaceRef = useRef<HTMLDivElement | null>(null)
 
@@ -189,7 +198,11 @@ function App() {
       })
       setActiveTool('link')
       setMobilePanelOpen(false)
-      toast.success(mode === 'dynamic' ? 'QR dynamique créé.' : 'QR statique généré.')
+      const message = mode === 'dynamic'
+        ? 'Votre QR dynamique est prêt à être diffusé.'
+        : 'Votre QR statique est prêt à être exporté.'
+      setActivityMessage(message)
+      toast.success(message)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Une erreur est survenue.'
       toast.error(message)
@@ -215,6 +228,7 @@ function App() {
     try {
       await copyToClipboard(value)
       setCopied(true)
+      setActivityMessage('Lien copié. Vous pouvez maintenant le partager.')
       toast.success('Lien copié.')
       window.setTimeout(() => setCopied(false), 1800)
     } catch {
@@ -242,11 +256,18 @@ function App() {
     })
     setActiveTool('link')
     setMobilePanelOpen(false)
+    setActivityMessage('Le QR a été repris dans le Studio.')
     toast.success('Lien repris depuis l’historique.')
   }
 
-  const downloadPng = () => qrStudioRef.current?.downloadPng()
-  const downloadSvg = () => qrStudioRef.current?.downloadSvg()
+  const downloadPng = () => {
+    qrStudioRef.current?.downloadPng()
+    setActivityMessage('Export PNG lancé.')
+  }
+  const downloadSvg = () => {
+    qrStudioRef.current?.downloadSvg()
+    setActivityMessage('Export SVG lancé.')
+  }
 
   const saveDynamicStyle = async () => {
     if (!result?.dynamicQrId) return
@@ -255,6 +276,7 @@ function App() {
       await updateDynamicQr(result.dynamicQrId, result.editToken, { styleOptions: qrOptions })
       const item = history.find((entry) => entry.dynamicQrId === result.dynamicQrId)
       if (item) updateHistoryItem(item.id, { qrOptions })
+      setActivityMessage('Le style de votre QR dynamique est enregistré.')
       toast.success('Style dynamique enregistré sans le logo local.')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Impossible d’enregistrer le style.')
@@ -264,7 +286,12 @@ function App() {
   }
 
   return (
-    <div className={`editor-shell vinkora-studio mode-${mode}`}>
+    <div
+      className={`editor-shell vinkora-studio mode-${mode}`}
+      data-accent={preferences.accent.toLowerCase()}
+      data-density={preferences.density.toLowerCase()}
+      data-motion={preferences.motion.toLowerCase()}
+    >
       <header className="editor-header">
         <Link className="header-brand" href="/" aria-label="Retour à l’accueil Vinkora">
           <Image
@@ -495,6 +522,7 @@ function App() {
                 <ResultPanel
                   result={result}
                   copied={copied}
+                  activityMessage={activityMessage}
                   onCopy={() => handleCopy()}
                   onSaveStyle={result?.mode === 'dynamic' ? saveDynamicStyle : undefined}
                   savingStyle={savingStyle}

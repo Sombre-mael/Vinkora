@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import type { InterfacePreferences } from '../../../lib/personalization'
 import { SignOutButton } from './SignOutButton'
 
 const navItems = [
@@ -60,7 +61,10 @@ type DashboardShellProps = {
   user: {
     name: string
     email: string
+    company?: string | null
   }
+  preferences: InterfacePreferences
+  pageOverride?: { title: string; description: string }
 }
 
 function initials(name: string) {
@@ -72,11 +76,11 @@ function initials(name: string) {
     .join('') || 'VK'
 }
 
-export function DashboardShell({ children, user }: DashboardShellProps) {
+export function DashboardShell({ children, user, preferences, pageOverride }: DashboardShellProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pendingPath, setPendingPath] = useState<string | null>(null)
-  const page = pageTitles[pathname] ?? pageTitles['/dashboard']
+  const page = pageOverride ?? pageTitles[pathname] ?? pageTitles['/dashboard']
 
   const handleNavigation = (href: string, exact?: boolean) => {
     if (!isCurrent(pathname, href, exact)) {
@@ -88,7 +92,16 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
   const isNavigationPending = (href: string) => pendingPath === href && pathname !== href
 
   return (
-    <div className="dashboard-shell">
+    <div
+      className="dashboard-shell"
+      data-accent={preferences.accent.toLowerCase()}
+      data-density={preferences.density.toLowerCase()}
+      data-motion={preferences.motion.toLowerCase()}
+    >
+      <span
+        className={`dashboard-route-progress${pendingPath && pathname !== pendingPath ? ' is-visible' : ''}`}
+        aria-hidden="true"
+      />
       <aside id="dashboard-navigation" className={`dashboard-sidebar ${mobileOpen ? 'is-open' : ''}`}>
         <div className="dashboard-sidebar__head">
           <Link href="/" aria-label="Vinkora, retour au site">
@@ -115,7 +128,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
           <span className="dashboard-avatar dashboard-avatar--small">{initials(user.name)}</span>
           <div>
             <strong>{user.name}</strong>
-            <small>Compte Vinkora</small>
+            <small>{user.company || 'Compte Vinkora'}</small>
           </div>
         </div>
 
@@ -194,10 +207,12 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
             </div>
           </div>
           <div className="dashboard-header__actions">
-            <Link className="button button--primary" href="/studio" aria-label="Ouvrir le Studio">
-              <QrCode size={18} aria-hidden="true" />
-              <span>Ouvrir le Studio</span>
-            </Link>
+            {pathname !== '/dashboard' ? (
+              <Link className="button button--primary" href="/studio" aria-label="Ouvrir le Studio">
+                <QrCode size={18} aria-hidden="true" />
+                <span>Ouvrir le Studio</span>
+              </Link>
+            ) : null}
           </div>
         </header>
         <main className="dashboard-content">{children}</main>
