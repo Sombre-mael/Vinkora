@@ -3,18 +3,20 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, BarChart3, Link2, QrCode } from 'lucide-react'
 import { AuthForm } from '@/components/saas/AuthForm'
+import { safeAuthRedirect, withAuthRedirect } from '../../lib/auth/redirect'
 
 export const metadata: Metadata = {
   title: 'Connexion',
-  description: 'Interface de connexion Vinkora.',
+  description: 'Connectez-vous à votre compte Vinkora.',
 }
 
 type LoginPageProps = {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; next?: string }>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { status } = await searchParams
+  const { status, next } = await searchParams
+  const returnTo = safeAuthRedirect(next)
 
   return (
     <main className="auth-page">
@@ -48,9 +50,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </p>
             ) : null}
           </div>
-          <AuthForm mode="login" />
+          <AuthForm mode="login" returnTo={returnTo} />
           <p className="auth-panel__switch">
-            Pas encore de compte ? <Link href="/register">Créer un compte</Link>
+            Pas encore de compte ? <Link href={withAuthRedirect('/register', returnTo)}>Créer un compte</Link>
           </p>
         </div>
       </section>

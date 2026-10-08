@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Clock3,
   Download,
@@ -16,7 +17,9 @@ import {
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { authClient } from '../lib/auth/client'
 import { HistoryPanel } from '@/components/HistoryPanel'
+import { AccountStatusLink } from '@/components/saas/AccountStatusLink'
 import {
   QrStudioCanvas,
   QrStudioControls,
@@ -65,7 +68,10 @@ const copyToClipboard = async (text: string) => {
   await navigator.clipboard.writeText(text)
 }
 
-function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
+function App() {
+  const router = useRouter()
+  const { data: session, isPending: sessionPending } = authClient.useSession()
+  const isAuthenticated = Boolean(session?.user)
   const [url, setUrl] = useState('')
   const [mode, setMode] = useState<QrCreationMode>('static')
   const [dynamicName, setDynamicName] = useState('')
@@ -133,7 +139,9 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
         dynamicQrId: qrCode.id,
         dynamicSlug: qrCode.slug,
         editToken,
-        manageUrl: `${window.location.origin}/manage/qr/${qrCode.id}#key=${editToken}`,
+        manageUrl: editToken
+          ? `${window.location.origin}/manage/qr/${qrCode.id}#key=${editToken}`
+          : `${window.location.origin}/manage/qr/${qrCode.id}`,
       })
     })
   }, [setManualResult, updateQrOptions])
@@ -151,6 +159,15 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
   }
 
   const handleSubmit = async () => {
+    if (mode === 'dynamic' && sessionPending) {
+      return
+    }
+
+    if (mode === 'dynamic' && !isAuthenticated) {
+      router.push('/login?next=/studio')
+      return
+    }
+
     try {
       const nextResult = await submitUrl(url, mode, {
         name: dynamicName,
@@ -232,7 +249,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
   const downloadSvg = () => qrStudioRef.current?.downloadSvg()
 
   const saveDynamicStyle = async () => {
-    if (!result?.dynamicQrId || !result.editToken) return
+    if (!result?.dynamicQrId) return
     setSavingStyle(true)
     try {
       await updateDynamicQr(result.dynamicQrId, result.editToken, { styleOptions: qrOptions })
@@ -264,6 +281,8 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
           <span>Studio QR</span>
           <small>{mode === 'dynamic' ? 'Campagne dynamique' : 'Création statique'}</small>
         </div>
+
+        <AccountStatusLink className="studio-account-link button button--secondary" compact />
 
         <button
           className="mobile-history-button"
@@ -339,7 +358,7 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
               <small>Nouveau QR</small>
               <strong>Destination</strong>
             </div>
-            <span>{mode === 'dynamic' ? 'Dynamique · Bêta' : 'Statique · Local'}</span>
+            <span>{mode === 'dynamic' ? 'Dynamique · Compte' : 'Statique · Local'}</span>
           </div>
           <div className="mobile-mode-switch" aria-label="Mode de génération">
             <button
@@ -383,9 +402,15 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isLoading || (mode === 'dynamic' && !dynamicBetaEnabled)}
+              disabled={isLoading || (mode === 'dynamic' && sessionPending)}
             >
-              {isLoading ? 'Patientez…' : mode === 'dynamic' && !dynamicBetaEnabled ? 'Fermée' : 'Générer'}
+              {isLoading
+                ? 'Patientez…'
+                : mode === 'dynamic' && sessionPending
+                  ? 'Vérification…'
+                  : mode === 'dynamic' && !isAuthenticated
+                    ? 'Se connecter'
+                    : 'Générer'}
             </button>
           </div>
           {mode === 'dynamic' ? (
@@ -423,9 +448,9 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
           ) : null}
           <p className="mobile-feature-note">
             {mode === 'dynamic'
-              ? dynamicBetaEnabled
-                ? 'Bêta gratuite hors forfait · 3 QR par appareil.'
-                : 'Les nouvelles créations sont temporairement fermées.'
+              ? isAuthenticated
+                ? 'Un QR dynamique est inclus avec votre compte.'
+                : 'Connectez-vous pour créer votre QR dynamique inclus.'
               : 'QR statique gratuit et local.'}
           </p>
           {error ? <p className="mobile-inline-error">{error}</p> : null}
@@ -455,7 +480,8 @@ function App({ dynamicBetaEnabled = false }: { dynamicBetaEnabled?: boolean }) {
                   dynamicName={dynamicName}
                   dynamicSlug={dynamicSlug}
                   dynamicCampaignChannel={dynamicCampaignChannel}
-                  dynamicCreationEnabled={dynamicBetaEnabled}
+                  dynamicCreationEnabled={isAuthenticated}
+                  dynamicAccessPending={sessionPending}
                   error={error}
                   isLoading={isLoading}
                   onUrlChange={setUrl}

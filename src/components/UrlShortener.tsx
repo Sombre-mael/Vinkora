@@ -12,6 +12,7 @@ type UrlShortenerProps = {
   dynamicSlug: string
   dynamicCampaignChannel: DynamicQrCampaignChannel
   dynamicCreationEnabled: boolean
+  dynamicAccessPending: boolean
   error: string
   isLoading: boolean
   onUrlChange: (url: string) => void
@@ -30,6 +31,7 @@ export function UrlShortener({
   dynamicSlug,
   dynamicCampaignChannel,
   dynamicCreationEnabled,
+  dynamicAccessPending,
   error,
   isLoading,
   onUrlChange,
@@ -111,8 +113,10 @@ export function UrlShortener({
           </div>
           <p className="beta-note">
             {dynamicCreationEnabled
-              ? 'Bêta hors forfait : trois QR dynamiques non archivés par appareil.'
-              : 'Les nouvelles créations sont temporairement fermées. Les QR existants restent gérables.'}
+              ? 'Un QR dynamique est inclus avec votre compte.'
+              : dynamicAccessPending
+                ? 'Vérification de votre compte…'
+                : 'Connectez-vous pour créer votre QR dynamique inclus.'}
           </p>
         </div>
       ) : null}
@@ -133,7 +137,7 @@ export function UrlShortener({
         >
           <RefreshCw aria-hidden="true" />
           QR dynamique
-          <span className="beta-chip">Bêta</span>
+          <span className="beta-chip">Compte</span>
         </button>
       </div>
 
@@ -141,7 +145,7 @@ export function UrlShortener({
         className="primary-action"
         type="button"
         onClick={onSubmit}
-        disabled={isLoading || (mode === 'dynamic' && !dynamicCreationEnabled)}
+        disabled={isLoading || (mode === 'dynamic' && dynamicAccessPending)}
       >
         {isLoading ? (
           <>
@@ -152,7 +156,11 @@ export function UrlShortener({
           <>
             {mode === 'dynamic' ? <RefreshCw aria-hidden="true" /> : <QrCode aria-hidden="true" />}
             {mode === 'dynamic'
-              ? dynamicCreationEnabled ? 'Créer le QR dynamique' : 'Créations temporairement fermées'
+              ? dynamicAccessPending
+                ? 'Vérification du compte'
+                : dynamicCreationEnabled
+                  ? 'Créer le QR dynamique'
+                  : 'Se connecter pour continuer'
               : 'Générer le QR statique'}
           </>
         )}

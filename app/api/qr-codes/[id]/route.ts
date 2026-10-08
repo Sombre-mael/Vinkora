@@ -3,10 +3,11 @@ import {
   assertRequestBodySize,
   assertSameOrigin,
   getManagedDynamicQr,
-  readEditToken,
+  readOptionalEditToken,
   toDynamicQrErrorResponse,
   updateManagedDynamicQr,
 } from '../../../../lib/dynamic-qr'
+import { getCurrentVinkoraUser } from '../../../../lib/auth/vinkora-user'
 import { getPrisma } from '../../../../lib/prisma'
 
 export const runtime = 'nodejs'
@@ -19,8 +20,14 @@ type RouteContext = {
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params
-    const editToken = readEditToken(request.headers.get('authorization'))
-    const qrCode = await getManagedDynamicQr(getPrisma(), id, editToken, request.nextUrl.origin)
+    const user = await getCurrentVinkoraUser()
+    const editToken = readOptionalEditToken(request.headers.get('authorization'))
+    const qrCode = await getManagedDynamicQr(
+      getPrisma(),
+      id,
+      { userId: user?.id, editToken },
+      request.nextUrl.origin,
+    )
     return NextResponse.json({ qrCode }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     const response = toDynamicQrErrorResponse(error)
@@ -37,12 +44,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     assertSameOrigin(request.headers.get('origin'), request.nextUrl.origin)
 
     const { id } = await context.params
-    const editToken = readEditToken(request.headers.get('authorization'))
+    const user = await getCurrentVinkoraUser()
+    const editToken = readOptionalEditToken(request.headers.get('authorization'))
     const body = (await request.json()) as Record<string, unknown>
     const qrCode = await updateManagedDynamicQr(
       getPrisma(),
       id,
-      editToken,
+      { userId: user?.id, editToken },
       {
         destinationUrl: body.destinationUrl,
         name: body.name,

@@ -1697,8 +1697,18 @@
 .dashboard-shell .catalog-plan__heading p,
 .dashboard-shell .catalog-plan__features li,
 .dashboard-shell .catalog-plan__limits li,
-.dashboard-shell .catalog-plan__terms dd {
+.dashboard-shell .catalog-plan__terms dd,
+.dashboard-shell .settings-fields dd {
   color: #263247 !important;
+}
+
+.dashboard-shell .settings-fields .form-field {
+  border-color: #dce4ee;
+  background: #f8fafc;
+}
+
+.dashboard-shell .settings-fields dt {
+  color: #64748b;
 }
 
 .dashboard-shell .catalog-plan__heading,
@@ -1731,4 +1741,98 @@
 
 .dashboard-shell .dashboard-mobile-nav a.is-active::before {
   background: #5b5ce2 !important;
+}
+
+/* Navigation clarity layer: keep account state and mobile controls explicit. */
+.account-status-link {
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-status-link.is-pending {
+  cursor: wait;
+  opacity: 0.68;
+  pointer-events: none;
+}
+
+.public-nav__links a.is-pending,
+.public-nav__mobile a.is-pending {
+  cursor: wait;
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+.dashboard-header__brand {
+  display: none;
+}
+
+.dashboard-shell .dashboard-header__menu {
+  border-color: #cfd9e5 !important;
+  background: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+.dashboard-shell .dashboard-header__menu:hover:not(:disabled) {
+  border-color: #5b5ce2 !important;
+  background: #f4f5ff !important;
+  color: #4849c8 !important;
+}
+
+.dashboard-shell .dashboard-header__menu:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.dashboard-nav__pending {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  margin-left: auto;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: dashboard-nav-spin 700ms linear infinite;
+}
+
+@keyframes dashboard-nav-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .dashboard-header__brand {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dashboard-header__brand img {
+    display: block;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+
+  .dashboard-header__title {
+    gap: 8px;
+  }
+
+  .dashboard-shell .dashboard-header__menu {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .dashboard-shell .dashboard-mobile-nav a {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-nav__pending {
+    animation: none;
+  }
 }

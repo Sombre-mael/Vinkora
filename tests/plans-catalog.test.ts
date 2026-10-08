@@ -36,7 +36,7 @@ test('Free matches the approved local static QR offer', () => {
   assert.equal(free.commercialStatus.availability, 'AVAILABLE')
   assert.equal(free.commercialStatus.purchasable, false)
   assert.match(free.features.join(' '), /Génération locale dans le navigateur/)
-  assert.match(free.limitations.join(' '), /Aucune sauvegarde dans Neon/)
+  assert.match(free.limitations.join(' '), /Aucune sauvegarde en ligne/)
   assert.match(free.limitations.join(' '), /Destination non modifiable après impression/)
 })
 

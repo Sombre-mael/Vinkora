@@ -2314,6 +2314,100 @@
   color: #8a96aa;
 }
 
+.account-qr-summary,
+.account-activity-summary {
+  display: grid;
+  gap: 18px;
+}
+
+.account-qr-summary > div:first-child,
+.account-resource-line,
+.account-qr-summary dl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.account-qr-summary__icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  color: #0f766e;
+  background: #e6fffb;
+  border-radius: 7px;
+}
+
+.account-qr-summary > div:first-child > div,
+.account-resource-line > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.account-qr-summary span,
+.account-qr-summary small,
+.account-resource-line span,
+.account-activity-summary span,
+.account-activity-summary small {
+  color: var(--saas-muted);
+}
+
+.account-qr-summary small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-qr-summary dl {
+  margin: 0;
+}
+
+.account-qr-summary dl > div {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--saas-line);
+  border-radius: 7px;
+}
+
+.account-qr-summary dt {
+  color: var(--saas-muted);
+  font-size: 0.78rem;
+}
+
+.account-qr-summary dd {
+  margin: 0;
+  font-weight: 750;
+}
+
+.account-activity-summary > strong {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1;
+}
+
+.account-resource-line {
+  justify-content: space-between;
+  padding: 16px 0;
+  border-top: 1px solid var(--saas-line);
+}
+
+.account-resource-line > div {
+  flex: 1;
+}
+
+.account-resource-line > a {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: var(--saas-ink);
+  border: 1px solid var(--saas-line);
+  border-radius: 7px;
+}
+
 .panel-kpi {
   display: inline-flex;
   align-items: center;
@@ -3219,6 +3313,31 @@
   margin-top: 20px;
 }
 
+.settings-fields .form-field {
+  min-width: 0;
+  border: 1px solid var(--saas-line);
+  border-radius: 6px;
+  background: var(--saas-bg);
+  padding: 14px 16px;
+}
+
+.settings-fields dt {
+  color: var(--saas-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.settings-fields dd {
+  overflow: hidden;
+  margin: 7px 0 0;
+  color: var(--saas-ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-toggles {
   display: grid;
 }
@@ -4012,6 +4131,10 @@
   .stat-card { padding: 14px; }
   .stat-card > strong { font-size: 1.35rem; }
   .dashboard-panel { padding: 16px; }
+  .account-qr-summary dl { gap: 8px; }
+  .account-resource-line { align-items: flex-start; flex-wrap: wrap; }
+  .account-resource-line > div { flex-basis: calc(100% - 58px); }
+  .account-resource-line > strong { padding-left: 58px; }
   .trend-chart__plot { height: 190px; gap: 6px; padding-inline: 4px; }
   .trend-chart__labels { gap: 6px; padding-inline: 0; font-size: 0.56rem; }
   .top-links > div { grid-template-columns: 34px minmax(0, 1fr) auto; }

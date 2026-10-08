@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     default: 'Dashboard',
     template: '%s | Vinkora',
   },
-  description: 'Aperçu de l’espace SaaS Vinkora.',
+  description: 'Gérez votre compte et vos ressources depuis votre espace Vinkora.',
 }
 
 export const dynamic = 'force-dynamic'

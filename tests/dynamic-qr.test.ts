@@ -5,8 +5,9 @@ import type { PrismaClient } from '@prisma/client'
 import {
   DynamicQrError,
   buildDynamicQrScanMetadata,
-  createAnonymousDynamicQr,
+  createAccountDynamicQr,
   getManagedDynamicQr,
+  hashEditToken,
   normalizeDynamicDestination,
   normalizeDynamicSlug,
   parseCampaignChannel,
@@ -15,7 +16,6 @@ import {
 } from '../lib/dynamic-qr'
 import { toCloudSafeQrStyle } from '../src/services/dynamicQr'
 
-const DEVICE_TOKEN = 'd'.repeat(43)
 const SECRET = 's'.repeat(48)
 
 type StoredQr = {
@@ -25,32 +25,17 @@ type StoredQr = {
   campaignChannel: 'UNSPECIFIED' | 'SOCIAL_MEDIA' | 'POSTER' | 'FLYER' | 'MENU' | 'EVENT' | 'PACKAGING' | 'OTHER'
   destinationUrl: string
   status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED'
-  ownership: 'ANONYMOUS_BETA'
-  anonymousDeviceHash: string
-  editTokenHash: string
+  ownership: 'USER_OWNED' | 'ANONYMOUS_BETA'
+  ownerId: string | null
+  createdUnderSubscriptionId: string | null
+  anonymousDeviceHash: string | null
+  editTokenHash: string | null
   creationIpHash: string | null
   styleOptions: object
   clickCount: number
   lastClickedAt: Date | null
   createdAt: Date
   updatedAt: Date
-}
-
-function withBetaEnvironment<T>(run: () => Promise<T>) {
-  const previous = {
-    enabled: process.env.DYNAMIC_QR_BETA_ENABLED,
-    deviceSecret: process.env.ANONYMOUS_QR_HASH_SECRET,
-    analyticsSecret: process.env.ANALYTICS_HASH_SECRET,
-  }
-  process.env.DYNAMIC_QR_BETA_ENABLED = 'true'
-  process.env.ANONYMOUS_QR_HASH_SECRET = SECRET
-  process.env.ANALYTICS_HASH_SECRET = SECRET
-
-  return run().finally(() => {
-    restoreEnv('DYNAMIC_QR_BETA_ENABLED', previous.enabled)
-    restoreEnv('ANONYMOUS_QR_HASH_SECRET', previous.deviceSecret)
-    restoreEnv('ANALYTICS_HASH_SECRET', previous.analyticsSecret)
-  })
 }
 
 function createMemoryPrisma(initial: StoredQr[] = []) {
@@ -63,6 +48,8 @@ function createMemoryPrisma(initial: StoredQr[] = []) {
       return rows.filter((row) => {
         const where = args.where
         if (where.ownership && row.ownership !== where.ownership) return false
+        if (where.ownerId && row.ownerId !== where.ownerId) return false
+        if ('createdUnderSubscriptionId' in where && row.createdUnderSubscriptionId !== where.createdUnderSubscriptionId) return false
         if (where.anonymousDeviceHash && row.anonymousDeviceHash !== where.anonymousDeviceHash) return false
         if (where.creationIpHash && row.creationIpHash !== where.creationIpHash) return false
         if (where.status && typeof where.status === 'object' && where.status !== null) {
@@ -88,10 +75,22 @@ function createMemoryPrisma(initial: StoredQr[] = []) {
       rows.push(created)
       return created
     },
-    async findFirst(args: { where: { id: string; editTokenHash: string } }) {
-      return rows.find(
-        (row) => row.id === args.where.id && row.editTokenHash === args.where.editTokenHash,
-      ) ?? null
+    async findFirst(args: { where: Record<string, unknown> }) {
+      return rows.find((row) => {
+        if (args.where.id && row.id !== args.where.id) return false
+        if (args.where.ownerId && row.ownerId !== args.where.ownerId) return false
+        if (args.where.ownership && row.ownership !== args.where.ownership) return false
+        if ('createdUnderSubscriptionId' in args.where && row.createdUnderSubscriptionId !== args.where.createdUnderSubscriptionId) return false
+        if (args.where.editTokenHash && row.editTokenHash !== args.where.editTokenHash) return false
+        if (args.where.status && typeof args.where.status === 'object') {
+          const statuses = (args.where.status as { in: StoredQr['status'][] }).in
+          if (!statuses.includes(row.status)) return false
+        }
+        return true
+      }) ?? null
+    },
+    async findUnique(args: { where: { id: string } }) {
+      return rows.find((row) => row.id === args.where.id) ?? null
     },
   }
 
@@ -128,20 +127,19 @@ test('campaign channels are allowlisted and default safely', () => {
 })
 
 test('dynamic QR creation stores its campaign support', async () => {
-  await withBetaEnvironment(async () => {
-    const { prisma, rows } = createMemoryPrisma()
-    const created = await createAnonymousDynamicQr(prisma, {
-      destinationUrl: 'https://example.com/campaign',
-      name: 'Campagne rentrée',
-      slug: 'campagne-rentree',
-      campaignChannel: 'POSTER',
-      deviceToken: DEVICE_TOKEN,
-      origin: 'https://vinkora.test',
-    })
-
-    assert.equal(created.qrCode.campaignChannel, 'POSTER')
-    assert.equal(rows[0]?.campaignChannel, 'POSTER')
+  const { prisma, rows } = createMemoryPrisma()
+  const created = await createAccountDynamicQr(prisma, 'user-one', {
+    destinationUrl: 'https://example.com/campaign',
+    name: 'Campagne rentrée',
+    slug: 'campagne-rentree',
+    campaignChannel: 'POSTER',
+    origin: 'https://vinkora.test',
   })
+
+  assert.equal(created.qrCode.campaignChannel, 'POSTER')
+  assert.equal(rows[0]?.campaignChannel, 'POSTER')
+  assert.equal(rows[0]?.ownerId, 'user-one')
+  assert.equal(rows[0]?.createdUnderSubscriptionId, null)
 })
 
 test('cloud QR style strips logo data and clamps unsafe values', () => {
@@ -191,90 +189,95 @@ test('the browser removes logoSrc before sending a dynamic QR style', () => {
   assert.doesNotMatch(JSON.stringify(cloudStyle), /base64/)
 })
 
-test('three anonymous QR creations succeed and the fourth is refused', async () => {
-  await withBetaEnvironment(async () => {
-    const { prisma, rows } = createMemoryPrisma()
-
-    for (let index = 1; index <= 3; index += 1) {
-      await createAnonymousDynamicQr(prisma, {
-        destinationUrl: `https://example.com/${index}`,
-        slug: `test-${index}`,
-        deviceToken: DEVICE_TOKEN,
-        origin: 'https://vinkora.test',
-      })
-    }
-
-    await assert.rejects(
-      createAnonymousDynamicQr(prisma, {
-        destinationUrl: 'https://example.com/4',
-        slug: 'test-4',
-        deviceToken: DEVICE_TOKEN,
-        origin: 'https://vinkora.test',
-      }),
-      (error: unknown) => error instanceof DynamicQrError && error.status === 429,
-    )
-    assert.equal(rows.length, 3)
+test('one account QR creation succeeds and the second is refused', async () => {
+  const { prisma, rows } = createMemoryPrisma()
+  await createAccountDynamicQr(prisma, 'user-limit', {
+    destinationUrl: 'https://example.com/one',
+    slug: 'test-one',
+    origin: 'https://vinkora.test',
   })
+
+  await assert.rejects(
+    createAccountDynamicQr(prisma, 'user-limit', {
+      destinationUrl: 'https://example.com/two',
+      slug: 'test-two',
+      origin: 'https://vinkora.test',
+    }),
+    (error: unknown) => error instanceof DynamicQrError && error.status === 429,
+  )
+  assert.equal(rows.length, 1)
 })
 
-test('two concurrent creations cannot exceed the device quota', async () => {
-  await withBetaEnvironment(async () => {
-    const { prisma, rows } = createMemoryPrisma()
-    await createAnonymousDynamicQr(prisma, {
+test('the public QR API requires an authenticated Vinkora account', () => {
+  const source = readFileSync('app/api/qr-codes/route.ts', 'utf8')
+  assert.match(source, /getCurrentVinkoraUser\(\)/)
+  assert.match(source, /AUTHENTICATION_REQUIRED/)
+  assert.match(source, /createAccountDynamicQr/)
+  assert.doesNotMatch(source, /x-vinkora-device-token/i)
+})
+
+test('two concurrent creations cannot exceed the account quota', async () => {
+  const { prisma, rows } = createMemoryPrisma()
+  const results = await Promise.allSettled([
+    createAccountDynamicQr(prisma, 'user-race', {
       destinationUrl: 'https://example.com/one',
       slug: 'race-one',
-      deviceToken: DEVICE_TOKEN,
       origin: 'https://vinkora.test',
-    })
-    await createAnonymousDynamicQr(prisma, {
+    }),
+    createAccountDynamicQr(prisma, 'user-race', {
       destinationUrl: 'https://example.com/two',
       slug: 'race-two',
-      deviceToken: DEVICE_TOKEN,
       origin: 'https://vinkora.test',
-    })
+    }),
+  ])
 
-    const results = await Promise.allSettled([
-      createAnonymousDynamicQr(prisma, {
-        destinationUrl: 'https://example.com/three',
-        slug: 'race-three',
-        deviceToken: DEVICE_TOKEN,
-        origin: 'https://vinkora.test',
-      }),
-      createAnonymousDynamicQr(prisma, {
-        destinationUrl: 'https://example.com/four',
-        slug: 'race-four',
-        deviceToken: DEVICE_TOKEN,
-        origin: 'https://vinkora.test',
-      }),
-    ])
-
-    assert.equal(results.filter((result) => result.status === 'fulfilled').length, 1)
-    assert.equal(results.filter((result) => result.status === 'rejected').length, 1)
-    assert.equal(rows.length, 3)
-  })
+  assert.equal(results.filter((result) => result.status === 'fulfilled').length, 1)
+  assert.equal(results.filter((result) => result.status === 'rejected').length, 1)
+  assert.equal(rows.length, 1)
 })
 
 test('an occupied slug returns a conflict', async () => {
-  await withBetaEnvironment(async () => {
-    const { prisma } = createMemoryPrisma()
-    const input = {
-      destinationUrl: 'https://example.com/menu',
-      slug: 'same-slug',
-      deviceToken: DEVICE_TOKEN,
-      origin: 'https://vinkora.test',
-    }
-    await createAnonymousDynamicQr(prisma, input)
-    await assert.rejects(
-      createAnonymousDynamicQr(prisma, input),
-      (error: unknown) => error instanceof DynamicQrError && error.status === 409,
-    )
-  })
+  const { prisma } = createMemoryPrisma()
+  const input = {
+    destinationUrl: 'https://example.com/menu',
+    slug: 'same-slug',
+    origin: 'https://vinkora.test',
+  }
+  await createAccountDynamicQr(prisma, 'user-a', input)
+  await assert.rejects(
+    createAccountDynamicQr(prisma, 'user-b', input),
+    (error: unknown) => error instanceof DynamicQrError && error.status === 409,
+  )
 })
 
 test('a wrong management key reveals no QR data', async () => {
-  const { prisma } = createMemoryPrisma()
+  const correctToken = 'a'.repeat(43)
+  const { prisma } = createMemoryPrisma([{
+    id: 'qr-secret',
+    slug: 'legacy-secret',
+    name: 'Ancien QR',
+    campaignChannel: 'UNSPECIFIED',
+    destinationUrl: 'https://example.com/legacy',
+    status: 'ACTIVE',
+    ownership: 'ANONYMOUS_BETA',
+    ownerId: null,
+    createdUnderSubscriptionId: null,
+    anonymousDeviceHash: 'd'.repeat(64),
+    editTokenHash: hashEditToken(correctToken),
+    creationIpHash: null,
+    styleOptions: {},
+    clickCount: 0,
+    lastClickedAt: null,
+    createdAt: new Date('2026-09-30T10:00:00.000Z'),
+    updatedAt: new Date('2026-09-30T10:00:00.000Z'),
+  }])
   await assert.rejects(
-    getManagedDynamicQr(prisma, 'qr-secret', 'x'.repeat(43), 'https://vinkora.test'),
+    getManagedDynamicQr(
+      prisma,
+      'qr-secret',
+      { editToken: 'x'.repeat(43) },
+      'https://vinkora.test',
+    ),
     (error: unknown) => error instanceof DynamicQrError && error.status === 404,
   )
 })

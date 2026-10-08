@@ -24,7 +24,7 @@ export type DynamicQrResource = {
 
 export type DynamicQrCreationResponse = {
   qrCode: DynamicQrResource
-  editToken: string
+  editToken?: string
   manageUrl: string
 }
 

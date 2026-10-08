@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { authClient } from '../../../lib/auth/client'
+import { AccountStatusLink } from './AccountStatusLink'
 
 const navItems = [
   { href: '/features', label: 'Fonctionnalités' },
@@ -16,10 +16,16 @@ const navItems = [
 export function PublicNav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const { data: session, isPending: sessionPending } = authClient.useSession()
-  const isAuthenticated = Boolean(session?.user)
-  const accountLabel = sessionPending ? 'Vérification…' : isAuthenticated ? 'Mon espace' : 'Se connecter'
-  const accountHref = isAuthenticated ? '/dashboard' : '/login'
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
+
+  const handleNavigation = (href: string) => {
+    setOpen(false)
+    if (href !== pathname) {
+      setPendingHref(href)
+    }
+  }
+
+  const isNavigationPending = (href: string) => pendingHref === href && pathname !== href
 
   return (
     <header className="public-nav">
@@ -39,8 +45,10 @@ export function PublicNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={pathname === item.href ? 'is-active' : undefined}
-              onClick={() => setOpen(false)}
+              className={`${pathname === item.href ? 'is-active' : ''}${isNavigationPending(item.href) ? ' is-pending' : ''}`.trim()}
+              aria-current={pathname === item.href ? 'page' : undefined}
+              aria-busy={isNavigationPending(item.href)}
+              onClick={() => handleNavigation(item.href)}
             >
               {item.label}
             </Link>
@@ -48,9 +56,7 @@ export function PublicNav() {
         </nav>
 
         <div className="public-nav__actions">
-          <Link className="button button--ghost" href={accountHref}>
-            {accountLabel}
-          </Link>
+          <AccountStatusLink className="button button--ghost" />
           <Link className="button button--primary" href="/studio">
             Ouvrir le Studio
           </Link>
@@ -75,13 +81,18 @@ export function PublicNav() {
       >
         <nav aria-label="Navigation mobile">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={isNavigationPending(item.href) ? 'is-pending' : undefined}
+              aria-current={pathname === item.href ? 'page' : undefined}
+              aria-busy={isNavigationPending(item.href)}
+              onClick={() => handleNavigation(item.href)}
+            >
               {item.label}
             </Link>
           ))}
-          <Link href={accountHref} onClick={() => setOpen(false)}>
-            {accountLabel}
-          </Link>
+          <AccountStatusLink onClick={() => setOpen(false)} />
           <Link className="button button--primary" href="/studio" onClick={() => setOpen(false)}>
             Ouvrir le Studio
           </Link>

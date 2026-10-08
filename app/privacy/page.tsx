@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <p className="eyebrow">Confidentialité</p>
         <h1>Données des QR dynamiques</h1>
         <p>
-          La bêta QR dynamique enregistre le moment du scan, le continent, le pays, la région et la ville
+          Le QR dynamique enregistre le moment du scan, le continent, le pays, la région et la ville
           approximative fournis par l’hébergeur, ainsi que le fuseau horaire, la langue, le type d’appareil,
           le système d’exploitation, le navigateur simplifié et le domaine référent lorsqu’il existe.
         </p>
@@ -23,12 +23,12 @@ export default function PrivacyPage() {
           à chaque QR servent uniquement à estimer les visiteurs uniques et récurrents sur la période conservée.
         </p>
         <p>
-          Les événements détaillés des QR anonymes sont supprimés après 30 jours. Le compteur total du QR reste
+          Les statistiques détaillées présentées couvrent les 30 derniers jours. Le compteur total du QR reste
           disponible afin de préserver son historique global.
         </p>
         <p>
-          La clé secrète de gestion est conservée sur votre appareil. Toute personne qui obtient votre lien de
-          gestion peut modifier le QR : gardez-le privé.
+          Les QR créés avec un compte sont gérés depuis l’espace Vinkora. Les anciens QR de la bêta anonyme
+          continuent d’utiliser leur clé privée de gestion.
         </p>
         <Link className="button button--primary" href="/studio">Retour au Studio</Link>
       </article>

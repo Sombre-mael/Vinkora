@@ -43,7 +43,7 @@ const capabilities = [
     description:
       'Comprenez rapidement quand, où et depuis quel appareil vos QR dynamiques sont consultés.',
     points: ['Évolution des clics', 'Sources et appareils', 'Liens performants'],
-    availability: 'Disponible pour les QR dynamiques en bêta',
+    availability: 'Disponible avec un compte Vinkora',
   },
 ]
 
@@ -52,7 +52,7 @@ const detailFeatures = [
   { icon: FileDown, title: 'Exports propres', text: 'Téléchargez vos créations au format PNG ou SVG.' },
   { icon: FolderKanban, title: 'Organisation claire', text: 'Retrouvez vos liens et campagnes depuis un même espace.' },
   { icon: MousePointerClick, title: 'Suivi utile', text: 'Concentrez-vous sur les indicateurs qui soutiennent vos décisions.' },
-  { icon: ShieldCheck, title: 'Contrôle serveur', text: 'Les ressources payantes seront protégées par des droits vérifiés côté serveur.' },
+  { icon: ShieldCheck, title: 'Accès maîtrisé', text: 'Vos ressources restent accessibles uniquement depuis votre espace.' },
   { icon: Brush, title: 'Identité cohérente', text: 'Adaptez chaque QR code à votre marque et à son support.' },
 ]
 
@@ -64,8 +64,8 @@ export default function FeaturesPage() {
           <span className="public-eyebrow">Fonctionnalités</span>
           <h1>Un lien simple à partager. Des outils sérieux derrière.</h1>
           <p>
-            Vinkora rassemble le Studio QR gratuit et les futurs outils de gestion nécessaires
-            pour piloter vos campagnes au quotidien.
+            Vinkora rassemble le Studio QR gratuit et les outils essentiels pour piloter vos
+            campagnes au quotidien.
           </p>
           <Link className="button button--primary button--large" href="/studio">
             Essayer le Studio

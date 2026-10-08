@@ -13,7 +13,7 @@ import type {
   SavedQrStyle,
 } from '../src/types/dynamicQr'
 
-const ACTIVE_ANONYMOUS_LIMIT = 3
+const FREE_ACCOUNT_DYNAMIC_QR_LIMIT = 1
 const ANALYTICS_RETENTION_DAYS = 30
 const CREATION_HASH_RETENTION_HOURS = 48
 const MAX_BODY_LENGTH = 16_384
@@ -67,10 +67,13 @@ type CreateDynamicQrInput = {
   slug?: unknown
   campaignChannel?: unknown
   styleOptions?: unknown
-  deviceToken: string
-  ipAddress?: string | null
   origin: string
   now?: Date
+}
+
+type DynamicQrAccess = {
+  userId?: string | null
+  editToken?: string | null
 }
 
 type UpdateDynamicQrInput = {
@@ -103,10 +106,6 @@ export type DynamicQrRedirect = {
   id: string
   destinationUrl: string
   status: DynamicQrStatus
-}
-
-export function isDynamicQrBetaEnabled() {
-  return process.env.DYNAMIC_QR_BETA_ENABLED === 'true'
 }
 
 export function assertRequestBodySize(contentLength: string | null) {
@@ -240,14 +239,6 @@ export function sanitizeQrStyle(value: unknown): SavedQrStyle {
   return style
 }
 
-export function generateDeviceToken() {
-  return randomBytes(32).toString('base64url')
-}
-
-export function generateEditToken() {
-  return randomBytes(32).toString('base64url')
-}
-
 export function hashEditToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
 }
@@ -257,7 +248,7 @@ export function hashAnonymousValue(value: string, secret: string, scope: string)
     throw new DynamicQrError(
       'SERVER_CONFIGURATION_ERROR',
       503,
-      'La bêta QR dynamique est temporairement indisponible.',
+      'Le service QR dynamique est temporairement indisponible.',
     )
   }
 
@@ -277,84 +268,51 @@ export function readEditToken(authorization: string | null) {
   return token
 }
 
-export async function createAnonymousDynamicQr(
+export function readOptionalEditToken(authorization: string | null) {
+  return authorization ? readEditToken(authorization) : null
+}
+
+export async function createAccountDynamicQr(
   prisma: PrismaClient,
+  userId: string,
   input: CreateDynamicQrInput,
 ) {
-  if (!isDynamicQrBetaEnabled()) {
-    throw new DynamicQrError(
-      'DYNAMIC_QR_BETA_DISABLED',
-      503,
-      'Les nouvelles créations de QR dynamiques sont temporairement fermées.',
-    )
-  }
-
-  if (!/^[A-Za-z0-9_-]{40,60}$/.test(input.deviceToken)) {
-    throw new DynamicQrError('INVALID_DEVICE_TOKEN', 400, 'Cet appareil ne peut pas être identifié.')
-  }
-
-  const now = input.now ?? new Date()
   const destinationUrl = normalizeDynamicDestination(input.destinationUrl)
   const customSlugRequested = typeof input.slug === 'string' && input.slug.trim().length > 0
   let slug = normalizeDynamicSlug(input.slug)
   const name = sanitizeDynamicQrName(input.name, destinationUrl)
   const campaignChannel = parseCampaignChannel(input.campaignChannel)
   const styleOptions = sanitizeQrStyle(input.styleOptions)
-  const editToken = generateEditToken()
-  const editTokenHash = hashEditToken(editToken)
-  const secret = requireHashSecret('ANONYMOUS_QR_HASH_SECRET')
-  const anonymousDeviceHash = hashAnonymousValue(input.deviceToken, secret, 'device')
-  const creationIpHash = input.ipAddress
-    ? hashAnonymousValue(input.ipAddress, secret, 'creation-ip')
-    : null
-  const ipLimit = positiveInteger(process.env.ANONYMOUS_QR_IP_DAILY_LIMIT, 50)
 
   let created
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       created = await prisma.$transaction(
         async (transaction) => {
-          const [activeCount, ipCount] = await Promise.all([
-            transaction.qrCode.count({
-              where: {
-                ownership: 'ANONYMOUS_BETA',
-                anonymousDeviceHash,
-                status: { in: ['ACTIVE', 'SUSPENDED'] },
-              },
-            }),
-            creationIpHash
-              ? transaction.qrCode.count({
-                  where: {
-                    ownership: 'ANONYMOUS_BETA',
-                    creationIpHash,
-                    createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
-                  },
-                })
-              : Promise.resolve(0),
-          ])
+          const activeCount = await transaction.qrCode.count({
+            where: {
+              ownerId: userId,
+              ownership: 'USER_OWNED',
+              createdUnderSubscriptionId: null,
+            },
+          })
 
-          if (activeCount >= ACTIVE_ANONYMOUS_LIMIT) {
+          if (activeCount >= FREE_ACCOUNT_DYNAMIC_QR_LIMIT) {
             throw new DynamicQrError(
-              'ANONYMOUS_QR_LIMIT_REACHED',
+              'FREE_DYNAMIC_QR_LIMIT_REACHED',
               429,
-              'Cet appareil possède déjà trois QR dynamiques non archivés.',
-            )
-          }
-
-          if (ipCount >= ipLimit) {
-            throw new DynamicQrError(
-              'CREATION_RATE_LIMITED',
-              429,
-              'Trop de QR dynamiques ont été créés récemment depuis ce réseau.',
+              'Votre compte possède déjà son QR dynamique inclus.',
             )
           }
 
           return transaction.qrCode.create({
             data: {
-              ownership: 'ANONYMOUS_BETA',
-              anonymousDeviceHash,
-              editTokenHash,
-              creationIpHash,
+              ownership: 'USER_OWNED',
+              ownerId: userId,
+              createdUnderSubscriptionId: null,
+              anonymousDeviceHash: null,
+              editTokenHash: null,
+              creationIpHash: null,
               slug,
               name,
               campaignChannel,
@@ -377,6 +335,21 @@ export async function createAnonymousDynamicQr(
         throw error
       }
       if (isPrismaCode(error, 'P2002')) {
+        const accountQr = await prisma.qrCode.findFirst({
+          where: {
+            ownerId: userId,
+            ownership: 'USER_OWNED',
+            createdUnderSubscriptionId: null,
+          },
+          select: { id: true },
+        })
+        if (accountQr) {
+          throw new DynamicQrError(
+            'FREE_DYNAMIC_QR_LIMIT_REACHED',
+            429,
+            'Votre compte possède déjà son QR dynamique inclus.',
+          )
+        }
         if (!customSlugRequested && attempt < 2) {
           slug = randomSlug()
           continue
@@ -397,36 +370,28 @@ export async function createAnonymousDynamicQr(
   const qrCode = serializeDynamicQr(created, input.origin)
   return {
     qrCode,
-    editToken,
-    manageUrl: `${input.origin}/manage/qr/${created.id}#key=${editToken}`,
+    manageUrl: `${input.origin}/manage/qr/${created.id}`,
   }
 }
 
 export async function getManagedDynamicQr(
   prisma: PrismaClient,
   id: string,
-  editToken: string,
+  access: DynamicQrAccess,
   origin: string,
 ) {
-  const qrCode = await findAuthorizedAnonymousQr(prisma, id, editToken)
+  const qrCode = await findAuthorizedQr(prisma, id, access)
   return serializeDynamicQr(qrCode, origin)
 }
 
 export async function updateManagedDynamicQr(
   prisma: PrismaClient,
   id: string,
-  editToken: string,
+  access: DynamicQrAccess,
   input: UpdateDynamicQrInput,
   origin: string,
 ) {
-  const editTokenHash = hashEditToken(editToken)
-  const existing = await prisma.qrCode.findFirst({
-    where: { id, editTokenHash, ownership: 'ANONYMOUS_BETA' },
-  })
-
-  if (!existing) {
-    throw new DynamicQrError('QR_NOT_FOUND', 404, 'QR dynamique introuvable.')
-  }
+  const existing = await findAuthorizedQr(prisma, id, access)
 
   const data: Prisma.QrCodeUpdateInput = {}
   const nextDestination = input.destinationUrl !== undefined
@@ -455,15 +420,16 @@ export async function updateManagedDynamicQr(
     try {
       updated = await prisma.$transaction(
         async (transaction) => {
-          if (wantsQuotaSlot) {
+          if (wantsQuotaSlot && existing.ownership === 'ANONYMOUS_BETA') {
             const activeCount = await transaction.qrCode.count({
               where: {
+                id: { not: existing.id },
                 ownership: 'ANONYMOUS_BETA',
                 anonymousDeviceHash: existing.anonymousDeviceHash,
                 status: { in: ['ACTIVE', 'SUSPENDED'] },
               },
             })
-            if (activeCount >= ACTIVE_ANONYMOUS_LIMIT) {
+            if (activeCount >= 3) {
               throw new DynamicQrError(
                 'ANONYMOUS_QR_LIMIT_REACHED',
                 429,
@@ -483,6 +449,13 @@ export async function updateManagedDynamicQr(
       break
     } catch (error) {
       if (error instanceof DynamicQrError) throw error
+      if (isPrismaCode(error, 'P2002')) {
+        throw new DynamicQrError(
+          'FREE_DYNAMIC_QR_LIMIT_REACHED',
+          429,
+          'Votre compte possède déjà son QR dynamique inclus.',
+        )
+      }
       if (isPrismaCode(error, 'P2034') && attempt < 2) continue
       throw error
     }
@@ -583,9 +556,9 @@ export function buildDynamicQrScanMetadata(
 export async function getDynamicQrAnalytics(
   prisma: PrismaClient,
   id: string,
-  editToken: string,
+  access: DynamicQrAccess,
 ): Promise<DynamicQrAnalytics> {
-  const qrCode = await findAuthorizedAnonymousQr(prisma, id, editToken)
+  const qrCode = await findAuthorizedQr(prisma, id, access)
   const from = new Date(Date.now() - ANALYTICS_RETENTION_DAYS * 24 * 60 * 60 * 1000)
 
   const [
@@ -710,28 +683,31 @@ export function getClientIp(headers: Headers) {
   )
 }
 
-function requireHashSecret(name: 'ANONYMOUS_QR_HASH_SECRET') {
-  const value = process.env[name]
-  if (!value || value.length < 32) {
-    throw new DynamicQrError(
-      'SERVER_CONFIGURATION_ERROR',
-      503,
-      'La bêta QR dynamique est temporairement indisponible.',
-    )
-  }
-  return value
-}
-
-async function findAuthorizedAnonymousQr(prisma: PrismaClient, id: string, editToken: string) {
-  const qrCode = await prisma.qrCode.findFirst({
-    where: {
-      id,
-      editTokenHash: hashEditToken(editToken),
-      ownership: 'ANONYMOUS_BETA',
-    },
-  })
+async function findAuthorizedQr(prisma: PrismaClient, id: string, access: DynamicQrAccess) {
+  const qrCode = await prisma.qrCode.findUnique({ where: { id } })
 
   if (!qrCode) {
+    throw new DynamicQrError('QR_NOT_FOUND', 404, 'QR dynamique introuvable.')
+  }
+
+  if (qrCode.ownership === 'ANONYMOUS_BETA') {
+    if (!access.editToken) {
+      throw new DynamicQrError(
+        'MANAGEMENT_KEY_REQUIRED',
+        401,
+        'La clé de gestion de cet ancien QR est requise.',
+      )
+    }
+    if (qrCode.editTokenHash !== hashEditToken(access.editToken)) {
+      throw new DynamicQrError('QR_NOT_FOUND', 404, 'QR dynamique introuvable.')
+    }
+    return qrCode
+  }
+
+  if (!access.userId) {
+    throw new DynamicQrError('AUTHENTICATION_REQUIRED', 401, 'Connectez-vous à votre compte Vinkora.')
+  }
+  if (qrCode.ownerId !== access.userId) {
     throw new DynamicQrError('QR_NOT_FOUND', 404, 'QR dynamique introuvable.')
   }
 
@@ -976,11 +952,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function positiveInteger(value: string | undefined, fallback: number) {
-  const parsed = Number.parseInt(value ?? '', 10)
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
-}
-
 function isPrismaCode(error: unknown, code: string) {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
 }
@@ -995,6 +966,13 @@ function getSafeErrorCode(error: unknown) {
 export function toDynamicQrErrorResponse(error: unknown) {
   if (error instanceof DynamicQrError) {
     return { status: error.status, body: { code: error.code, error: error.message } }
+  }
+
+  if (error instanceof Error && error.name === 'SuspendedUserError') {
+    return {
+      status: 403,
+      body: { code: 'ACCOUNT_SUSPENDED', error: 'Ce compte Vinkora est suspendu.' },
+    }
   }
 
   console.error('Vinkora dynamic QR request failed.', { errorCode: getSafeErrorCode(error) })

@@ -303,7 +303,7 @@ model QrCode {
   id      String  @id @default(cuid())
   ownerId String?
 
-  /// Information d'audit uniquement; les droits utilisent la souscription courante.
+  /// Information d'audit uniquement; NULL identifie le QR dynamique inclus avec le compte.
   createdUnderSubscriptionId String?
 
   ownership           QrOwnership @default(USER_OWNED)

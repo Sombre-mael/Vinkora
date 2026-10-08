@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '../lib/auth/server'
 import { ensureVinkoraUser, SuspendedUserError } from '../lib/auth/vinkora-user'
+import { safeAuthRedirect } from '../lib/auth/redirect'
 
 export type AuthActionState = {
   error: string
@@ -13,6 +14,10 @@ function readCredentials(formData: FormData) {
     email: String(formData.get('email') ?? '').trim().toLowerCase(),
     password: String(formData.get('password') ?? ''),
   }
+}
+
+function readReturnTo(formData: FormData) {
+  return safeAuthRedirect(formData.get('returnTo'))
 }
 
 function validateCredentials(email: string, password: string) {
@@ -44,6 +49,7 @@ export async function signUpWithEmail(
 ): Promise<AuthActionState> {
   const name = String(formData.get('name') ?? '').trim()
   const termsAccepted = formData.get('terms') === 'on'
+  const returnTo = readReturnTo(formData)
   const { email, password } = readCredentials(formData)
   const validationError = validateCredentials(email, password)
 
@@ -79,13 +85,14 @@ export async function signUpWithEmail(
     return { error: toSafeAuthError(error) }
   }
 
-  redirect('/dashboard')
+  redirect(returnTo)
 }
 
 export async function signInWithEmail(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
+  const returnTo = readReturnTo(formData)
   const { email, password } = readCredentials(formData)
   const validationError = validateCredentials(email, password)
 
@@ -113,5 +120,5 @@ export async function signInWithEmail(
     return { error: toSafeAuthError(error) }
   }
 
-  redirect('/dashboard')
+  redirect(returnTo)
 }

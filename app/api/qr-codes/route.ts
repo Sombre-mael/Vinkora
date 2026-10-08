@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   assertRequestBodySize,
   assertSameOrigin,
-  createAnonymousDynamicQr,
-  getClientIp,
+  createAccountDynamicQr,
+  DynamicQrError,
   toDynamicQrErrorResponse,
 } from '../../../lib/dynamic-qr'
+import { getCurrentVinkoraUser } from '../../../lib/auth/vinkora-user'
 import { getPrisma } from '../../../lib/prisma'
 
 export const runtime = 'nodejs'
@@ -15,16 +16,22 @@ export async function POST(request: NextRequest) {
     assertRequestBodySize(request.headers.get('content-length'))
     assertSameOrigin(request.headers.get('origin'), request.nextUrl.origin)
 
+    const user = await getCurrentVinkoraUser()
+    if (!user) {
+      throw new DynamicQrError(
+        'AUTHENTICATION_REQUIRED',
+        401,
+        'Connectez-vous pour créer votre QR dynamique.',
+      )
+    }
+
     const body = (await request.json()) as Record<string, unknown>
-    const deviceToken = request.headers.get('x-vinkora-device-token') ?? ''
-    const result = await createAnonymousDynamicQr(getPrisma(), {
+    const result = await createAccountDynamicQr(getPrisma(), user.id, {
       destinationUrl: body.destinationUrl,
       name: body.name,
       slug: body.slug,
       campaignChannel: body.campaignChannel,
       styleOptions: body.styleOptions,
-      deviceToken,
-      ipAddress: getClientIp(request.headers),
       origin: request.nextUrl.origin,
     })
 

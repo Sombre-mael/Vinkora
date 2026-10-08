@@ -20,7 +20,7 @@ export function PublicFooter() {
           <strong>Ressources</strong>
           <Link href="/faq">Questions fréquentes</Link>
           <Link href="/privacy">Confidentialité</Link>
-          <Link href="/dashboard">Aperçu du dashboard</Link>
+          <Link href="/dashboard">Mon espace</Link>
         </div>
         <div>
           <strong>Compte</strong>

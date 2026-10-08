@@ -11,7 +11,7 @@ export default function BillingPage() {
         <div>
           <span>Offre actuelle</span>
           <h2>Aucune offre active</h2>
-          <p>Aucun utilisateur ni abonnement réel n’est connecté à cet aperçu.</p>
+          <p>Votre compte ne possède actuellement aucune offre active.</p>
         </div>
       </section>
 
@@ -23,7 +23,7 @@ export default function BillingPage() {
         <EmptyState
           icon={Gauge}
           title="Aucune utilisation à afficher"
-          description="Les créations consommées et les analyses apparaîtront après la connexion d’un abonnement réel."
+          description="Votre utilisation apparaîtra ici lorsqu’une offre sera active sur votre compte."
         />
       </section>
 
@@ -32,7 +32,7 @@ export default function BillingPage() {
           <div>
             <span className="section-heading__eyebrow">Catalogue officiel</span>
             <h2>Offres de lancement</h2>
-            <p>Les offres payantes sont présentées mais ne peuvent pas encore être achetées.</p>
+            <p>Les souscriptions en ligne ne sont pas encore ouvertes.</p>
           </div>
         </div>
         <div className="catalog-plan-grid catalog-plan-grid--billing">
@@ -50,7 +50,7 @@ export default function BillingPage() {
         <EmptyState
           icon={FileText}
           title="Aucune facture ni transaction"
-          description="Aucun paiement réel n’a été initié ou enregistré."
+          description="Votre historique apparaîtra ici après votre premier paiement."
         />
       </section>
     </div>

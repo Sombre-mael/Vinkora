@@ -3,13 +3,21 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { AuthForm } from '@/components/saas/AuthForm'
+import { safeAuthRedirect, withAuthRedirect } from '../../lib/auth/redirect'
 
 export const metadata: Metadata = {
   title: 'Créer un compte',
-  description: 'Interface d’inscription Vinkora.',
+  description: 'Créez votre compte Vinkora.',
 }
 
-export default function RegisterPage() {
+type RegisterPageProps = {
+  searchParams: Promise<{ next?: string }>
+}
+
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+  const { next } = await searchParams
+  const returnTo = safeAuthRedirect(next)
+
   return (
     <main className="auth-page">
       <section className="auth-page__brand">
@@ -22,7 +30,7 @@ export default function RegisterPage() {
           <ul>
             <li><CheckCircle2 size={18} /> Liens et QR réunis</li>
             <li><CheckCircle2 size={18} /> Interface adaptée au mobile</li>
-            <li><CheckCircle2 size={18} /> Offre Mobile Money prévue</li>
+            <li><CheckCircle2 size={18} /> Connexion par e-mail ou Google</li>
           </ul>
         </div>
         <small>Créez. Partagez. Mesurez.</small>
@@ -37,9 +45,9 @@ export default function RegisterPage() {
             <h2>Créer votre espace Vinkora</h2>
             <p>Créez votre compte pour accéder à votre espace personnel.</p>
           </div>
-          <AuthForm mode="register" />
+          <AuthForm mode="register" returnTo={returnTo} />
           <p className="auth-panel__switch">
-            Déjà inscrit ? <Link href="/login">Se connecter</Link>
+            Déjà inscrit ? <Link href={withAuthRedirect('/login', returnTo)}>Se connecter</Link>
           </p>
         </div>
       </section>

@@ -80,7 +80,7 @@ export const launchPlans = [
       'Aucune publicité intégrée dans le QR exporté',
     ],
     limitations: [
-      'Aucune sauvegarde dans Neon',
+      'Aucune sauvegarde en ligne',
       'Aucune statistique serveur',
       'Aucune ressource dynamique',
       'Destination non modifiable après impression',

@@ -23,8 +23,8 @@ export default function PricingPage() {
           <span className="public-eyebrow">Catalogue de lancement</span>
           <h1>Trois offres claires, selon la durée de votre besoin.</h1>
           <p>
-            Free est disponible sans compte. Pass Événement et Starter sont publiés dans le
-            catalogue mais resteront désactivés jusqu’à l’intégration du paiement et de l’activation.
+            Free est disponible sans compte. Les souscriptions à Pass Événement et Starter
+            ouvriront prochainement.
           </p>
         </div>
       </section>

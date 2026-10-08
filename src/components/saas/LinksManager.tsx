@@ -5,9 +5,6 @@ import {
   Copy,
   ExternalLink,
   Link2,
-  MoreHorizontal,
-  Pause,
-  Play,
   Search,
   SlidersHorizontal,
 } from 'lucide-react'
@@ -15,7 +12,7 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Badge, EmptyState } from './SaasUi'
 
-export type DashboardLinkStatus = 'active' | 'paused'
+export type DashboardLinkStatus = 'active' | 'paused' | 'archived'
 
 export type DashboardLink = {
   id: string
@@ -26,13 +23,13 @@ export type DashboardLink = {
   clicks: number
   status: DashboardLinkStatus
   createdAt: string
-  trend: number
+  manageUrl: string
 }
 
 type Filter = 'all' | DashboardLinkStatus
 
 export function LinksManager({ initialLinks }: { initialLinks: DashboardLink[] }) {
-  const [links, setLinks] = useState(initialLinks)
+  const links = initialLinks
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -52,7 +49,10 @@ export function LinksManager({ initialLinks }: { initialLinks: DashboardLink[] }
 
   async function copyLink(link: DashboardLink) {
     try {
-      await navigator.clipboard.writeText(`https://${link.shortUrl}`)
+      const publicUrl = link.shortUrl.startsWith('/')
+        ? `${window.location.origin}${link.shortUrl}`
+        : link.shortUrl
+      await navigator.clipboard.writeText(publicUrl)
       setCopiedId(link.id)
       toast.success('Lien copié')
       window.setTimeout(() => setCopiedId(null), 1400)
@@ -61,25 +61,14 @@ export function LinksManager({ initialLinks }: { initialLinks: DashboardLink[] }
     }
   }
 
-  function toggleLink(id: string) {
-    setLinks((current) =>
-      current.map((link) =>
-        link.id === id
-          ? { ...link, status: link.status === 'active' ? 'paused' : 'active' }
-          : link,
-      ),
-    )
-    toast.info('La gestion des liens sera disponible avec la connexion au backend.')
-  }
-
   if (!links.length) {
     return (
       <EmptyState
         icon={Link2}
         title="Aucun lien dans votre espace"
         description="Vos liens courts et QR dynamiques apparaîtront ici après leur création."
-        actionLabel="Créer un lien"
-        actionHref="/dashboard/links/new"
+        actionLabel="Ouvrir le Studio"
+        actionHref="/studio"
       />
     )
   }
@@ -103,6 +92,7 @@ export function LinksManager({ initialLinks }: { initialLinks: DashboardLink[] }
             ['all', 'Tous'],
             ['active', 'Actifs'],
             ['paused', 'En pause'],
+            ['archived', 'Archivés'],
           ] as const).map(([value, label]) => (
             <button
               key={value}
@@ -139,37 +129,21 @@ export function LinksManager({ initialLinks }: { initialLinks: DashboardLink[] }
             </div>
             <div data-label="État">
               <Badge tone={link.status === 'active' ? 'success' : 'warning'}>
-                {link.status === 'active' ? 'Actif' : 'En pause'}
+                {link.status === 'active' ? 'Actif' : link.status === 'paused' ? 'En pause' : 'Archivé'}
               </Badge>
             </div>
             <div className="links-table__clicks" data-label="Clics">
               <strong>{link.clicks.toLocaleString('fr-FR')}</strong>
-              <span className={link.trend >= 0 ? 'is-positive' : 'is-negative'}>
-                {link.trend >= 0 ? '+' : ''}{link.trend} %
-              </span>
             </div>
             <span data-label="Création">{link.createdAt}</span>
             <div className="links-table__actions">
-              <button
-                className="icon-button"
-                type="button"
-                aria-label={link.status === 'active' ? `Mettre ${link.title} en pause` : `Activer ${link.title}`}
-                onClick={() => toggleLink(link.id)}
-              >
-                {link.status === 'active' ? <Pause size={17} /> : <Play size={17} />}
-              </button>
               <a
                 className="icon-button"
-                href={link.destination}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Ouvrir la destination de ${link.title}`}
+                href={link.manageUrl}
+                aria-label={`Gérer ${link.title}`}
               >
                 <ExternalLink size={17} />
               </a>
-              <button className="icon-button" type="button" aria-label={`Plus d’actions pour ${link.title}`}>
-                <MoreHorizontal size={18} />
-              </button>
             </div>
           </article>
         ))}

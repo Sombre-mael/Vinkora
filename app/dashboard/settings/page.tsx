@@ -1,4 +1,4 @@
-import { KeyRound, ShieldCheck } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 import { SettingsPanels } from '@/components/saas/SettingsPanels'
 import { requireCurrentVinkoraUser } from '../../../lib/auth/vinkora-user'
 
@@ -19,11 +19,8 @@ export default async function SettingsPage() {
         <span><ShieldCheck size={21} /></span>
         <div>
           <h2>Sécurité du compte</h2>
-          <p>La gestion du mot de passe et des sessions apparaîtra après l’intégration de l’authentification.</p>
+          <p>Votre compte est protégé par votre méthode de connexion Vinkora.</p>
         </div>
-        <button className="button button--secondary" type="button" disabled>
-          <KeyRound size={16} /> Gérer la sécurité
-        </button>
       </section>
     </div>
   )

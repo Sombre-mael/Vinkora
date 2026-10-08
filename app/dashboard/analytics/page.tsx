@@ -6,7 +6,7 @@ export default function AnalyticsPage() {
     <div className="dashboard-page">
       <SectionHeading
         title="Analytics"
-        description="Les données réelles de vos liens et QR dynamiques apparaîtront ici."
+        description="Les performances de vos liens et QR dynamiques apparaîtront ici."
       />
       <section className="dashboard-panel dashboard-panel--empty-page">
         <EmptyState

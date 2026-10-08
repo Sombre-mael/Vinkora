@@ -11,9 +11,10 @@ import { GoogleAuthButton } from './GoogleAuthButton'
 
 type AuthFormProps = {
   mode: 'login' | 'register'
+  returnTo?: string
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, returnTo = '/dashboard' }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const isRegister = mode === 'register'
   const action = isRegister ? signUpWithEmail : signInWithEmail
@@ -23,11 +24,12 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <div className="auth-methods">
-      <GoogleAuthButton mode={mode} />
+      <GoogleAuthButton mode={mode} returnTo={returnTo} />
       <div className="auth-methods__divider" aria-hidden="true">
         <span>ou avec votre e-mail</span>
       </div>
       <form className="auth-form" action={formAction}>
+        <input type="hidden" name="returnTo" value={returnTo} />
         {isRegister ? (
           <div className="form-field">
             <label htmlFor="auth-name">Nom complet</label>
@@ -58,7 +60,6 @@ export function AuthForm({ mode }: AuthFormProps) {
         <div className="form-field">
           <div className="form-field__label-row">
             <label htmlFor="auth-password">Mot de passe</label>
-            {!isRegister ? <small>Réinitialisation bientôt disponible</small> : null}
           </div>
           <div className="input-with-icon">
             <LockKeyhole size={18} aria-hidden="true" />
@@ -102,9 +103,6 @@ export function AuthForm({ mode }: AuthFormProps) {
               : 'Se connecter'}
           <ArrowRight size={18} aria-hidden="true" />
         </button>
-        <p className="auth-form__notice">
-          Votre session est protégée par un cookie sécurisé géré côté serveur.
-        </p>
       </form>
     </div>
   )

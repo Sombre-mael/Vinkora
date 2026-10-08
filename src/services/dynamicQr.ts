@@ -8,26 +8,7 @@ import type {
   SavedQrStyle,
 } from '@/types/dynamicQr'
 
-const DEVICE_TOKEN_KEY = 'vinkora-anonymous-device-v1'
 const STUDIO_TRANSFER_KEY = 'vinkora-dynamic-studio-transfer-v1'
-
-function randomBrowserToken() {
-  const bytes = new Uint8Array(32)
-  crypto.getRandomValues(bytes)
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/g, '')
-}
-
-export function getAnonymousDeviceToken() {
-  const current = window.localStorage.getItem(DEVICE_TOKEN_KEY)
-  if (current) return current
-
-  const token = randomBrowserToken()
-  window.localStorage.setItem(DEVICE_TOKEN_KEY, token)
-  return token
-}
 
 export async function createDynamicQr(input: {
   destinationUrl: string
@@ -40,7 +21,6 @@ export async function createDynamicQr(input: {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Vinkora-Device-Token': getAnonymousDeviceToken(),
     },
     body: JSON.stringify({
       ...input,
@@ -51,9 +31,9 @@ export async function createDynamicQr(input: {
   return readJson<DynamicQrCreationResponse>(response)
 }
 
-export async function getDynamicQr(id: string, editToken: string) {
+export async function getDynamicQr(id: string, editToken?: string) {
   const response = await fetch(`/api/qr-codes/${encodeURIComponent(id)}`, {
-    headers: { Authorization: `Bearer ${editToken}` },
+    headers: managementHeaders(editToken),
     cache: 'no-store',
   })
   const data = await readJson<{ qrCode: DynamicQrResource }>(response)
@@ -62,7 +42,7 @@ export async function getDynamicQr(id: string, editToken: string) {
 
 export async function updateDynamicQr(
   id: string,
-  editToken: string,
+  editToken: string | undefined,
   updates: {
     destinationUrl?: string
     name?: string
@@ -74,7 +54,7 @@ export async function updateDynamicQr(
   const response = await fetch(`/api/qr-codes/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: {
-      Authorization: `Bearer ${editToken}`,
+      ...managementHeaders(editToken),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -94,16 +74,16 @@ export function toCloudSafeQrStyle(options: QrOptions): SavedQrStyle {
   return { ...cloudStyle, showLogo: false } as SavedQrStyle
 }
 
-export async function getDynamicQrAnalytics(id: string, editToken: string) {
+export async function getDynamicQrAnalytics(id: string, editToken?: string) {
   const response = await fetch(`/api/qr-codes/${encodeURIComponent(id)}/analytics`, {
-    headers: { Authorization: `Bearer ${editToken}` },
+    headers: managementHeaders(editToken),
     cache: 'no-store',
   })
   const data = await readJson<{ analytics: DynamicQrAnalytics }>(response)
   return data.analytics
 }
 
-export function queueDynamicQrForStudio(qrCode: DynamicQrResource, editToken: string) {
+export function queueDynamicQrForStudio(qrCode: DynamicQrResource, editToken?: string) {
   window.localStorage.setItem(STUDIO_TRANSFER_KEY, JSON.stringify({ qrCode, editToken }))
 }
 
@@ -113,10 +93,14 @@ export function readDynamicQrStudioTransfer() {
 
   window.localStorage.removeItem(STUDIO_TRANSFER_KEY)
   try {
-    return JSON.parse(raw) as { qrCode: DynamicQrResource; editToken: string }
+    return JSON.parse(raw) as { qrCode: DynamicQrResource; editToken?: string }
   } catch {
     return null
   }
+}
+
+function managementHeaders(editToken?: string): HeadersInit {
+  return editToken ? { Authorization: `Bearer ${editToken}` } : {}
 }
 
 async function readJson<T>(response: Response): Promise<T> {

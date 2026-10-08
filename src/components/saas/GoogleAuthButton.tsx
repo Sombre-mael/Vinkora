@@ -5,9 +5,10 @@ import { authClient } from '../../../lib/auth/client'
 
 type GoogleAuthButtonProps = {
   mode: 'login' | 'register'
+  returnTo?: string
 }
 
-export function GoogleAuthButton({ mode }: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ mode, returnTo = '/dashboard' }: GoogleAuthButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState('')
 
@@ -18,7 +19,7 @@ export function GoogleAuthButton({ mode }: GoogleAuthButtonProps) {
     try {
       const { error: authError } = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/dashboard',
+        callbackURL: returnTo,
       })
 
       if (authError) {

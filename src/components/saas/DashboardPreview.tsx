@@ -3,7 +3,7 @@ import { BarChart3, Link2, MousePointerClick, QrCode } from 'lucide-react'
 
 export function DashboardPreview() {
   return (
-    <div className="dashboard-preview" aria-label="Aperçu du futur tableau de bord Vinkora">
+    <div className="dashboard-preview" aria-label="Tableau de bord Vinkora">
       <aside className="dashboard-preview__rail" aria-hidden="true">
         <Image src="/brand/vinkora-symbol.png" alt="" width={35} height={35} />
         <span className="is-active">

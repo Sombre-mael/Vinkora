@@ -55,7 +55,7 @@ export function DynamicQrManager({ id }: { id: string }) {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState<'public' | 'manage' | null>(null)
 
-  const load = useCallback(async (token: string) => {
+  const load = useCallback(async (token?: string) => {
     setLoading(true)
     setError('')
     try {
@@ -83,28 +83,21 @@ export function DynamicQrManager({ id }: { id: string }) {
       window.history.replaceState(null, '', window.location.pathname)
     }
 
-    if (!editToken) {
-      queueMicrotask(() => {
-        setLoading(false)
-        setError('La clé secrète de gestion est absente de ce navigateur.')
-      })
-      return
-    }
-
-    queueMicrotask(() => void load(editToken))
+    queueMicrotask(() => void load(editToken || undefined))
   }, [editToken, id, load])
 
   const manageUrl = useMemo(() => {
-    if (!editToken || typeof window === 'undefined') return ''
-    return `${window.location.origin}/manage/qr/${id}#key=${editToken}`
+    if (typeof window === 'undefined') return ''
+    return editToken
+      ? `${window.location.origin}/manage/qr/${id}#key=${editToken}`
+      : `${window.location.origin}/manage/qr/${id}`
   }, [editToken, id])
 
   async function saveDestination(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!editToken) return
     setSaving(true)
     try {
-      const updated = await updateDynamicQr(id, editToken, {
+      const updated = await updateDynamicQr(id, editToken || undefined, {
         destinationUrl,
         name,
         campaignChannel,
@@ -122,10 +115,9 @@ export function DynamicQrManager({ id }: { id: string }) {
   }
 
   async function setStatus(status: DynamicQrStatus) {
-    if (!editToken) return
     setSaving(true)
     try {
-      const updated = await updateDynamicQr(id, editToken, { status })
+      const updated = await updateDynamicQr(id, editToken || undefined, { status })
       setQrCode(updated)
       toast.success(status === 'ACTIVE' ? 'QR réactivé.' : status === 'SUSPENDED' ? 'QR suspendu.' : 'QR archivé.')
     } catch (err) {
@@ -140,15 +132,15 @@ export function DynamicQrManager({ id }: { id: string }) {
       await navigator.clipboard.writeText(value)
       setCopied(type)
       window.setTimeout(() => setCopied(null), 1500)
-      toast.success(type === 'manage' ? 'Lien secret copié.' : 'Lien public copié.')
+      toast.success(type === 'manage' ? 'Lien de gestion copié.' : 'Lien public copié.')
     } catch {
       toast.error('Impossible de copier automatiquement.')
     }
   }
 
   function openInStudio() {
-    if (!qrCode || !editToken) return
-    queueDynamicQrForStudio(qrCode, editToken)
+    if (!qrCode) return
+    queueDynamicQrForStudio(qrCode, editToken || undefined)
     router.push('/studio?resume=dynamic')
   }
 
@@ -157,7 +149,7 @@ export function DynamicQrManager({ id }: { id: string }) {
       <main className="dynamic-manage-page dynamic-manage-state">
         <LoaderCircle className="spin" aria-hidden="true" />
         <h1>Chargement de votre QR dynamique</h1>
-        <p>Vérification locale de la clé de gestion.</p>
+        <p>Ouverture de votre espace de gestion.</p>
       </main>
     )
   }
@@ -187,7 +179,7 @@ export function DynamicQrManager({ id }: { id: string }) {
           <span>Vinkora</span>
         </Link>
         <div>
-          <span className="dynamic-beta-label">Bêta gratuite hors forfait</span>
+          <span className="dynamic-beta-label">QR dynamique du compte</span>
           <h1>{qrCode.name}</h1>
           <p>{getDynamicQrChannelLabel(qrCode.campaignChannel)} · Modifiez la destination sans réimprimer votre QR.</p>
         </div>
@@ -260,9 +252,13 @@ export function DynamicQrManager({ id }: { id: string }) {
           </div>
           <button className="dynamic-secret-link" type="button" onClick={() => copy(manageUrl, 'manage')}>
             {copied === 'manage' ? <Check /> : <Copy />}
-            Copier le lien secret de gestion
+            Copier le lien de gestion
           </button>
-          <p className="dynamic-warning">Toute personne possédant ce lien peut gérer le QR. Ne le publiez pas.</p>
+          {editToken ? (
+            <p className="dynamic-warning">Cet ancien QR utilise encore une clé privée. Gardez ce lien confidentiel.</p>
+          ) : (
+            <p className="dynamic-warning">La gestion reste accessible depuis votre compte Vinkora.</p>
+          )}
         </section>
       </div>
 
